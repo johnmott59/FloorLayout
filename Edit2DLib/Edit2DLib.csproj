@@ -1,0 +1,174 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{B05A049C-3742-42CE-85F2-0EF02B6DF968}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Edit2DLib</RootNamespace>
+    <AssemblyName>Edit2DLib</AssemblyName>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Edit2DBase\GetPenColor.cs" />
+    <Compile Include="Edit2DFloorLayoutInput\Constructor.cs" />
+    <Compile Include="Edit2DFloorLayoutInput\Overrides.Mouse.cs" />
+    <Compile Include="Edit2DFloorLayoutInput\Properties.cs" />
+    <Compile Include="Edit2DFloorLayoutInput\Overrides.DrawShapes.cs" />
+    <Compile Include="Edit2DFloorLayoutInput\stub.cs" />
+    <Compile Include="Edit2DGraphLayer\AddEdge.cs" />
+    <Compile Include="Edit2DGraphLayer\AddHoleInMostRecentlySelectedEdge.cs" />
+    <Compile Include="Edit2DGraphLayer\AppendEdge.cs" />
+    <Compile Include="Edit2DGraphLayer\Constructor.cs" />
+    <Compile Include="Edit2DGraphLayer\DeleteCurrentEdge.cs" />
+    <Compile Include="Edit2DGraphLayer\DeleteSelectedVertex.cs" />
+    <Compile Include="Edit2DGraphLayer\EdgeCenter.cs" />
+    <Compile Include="Edit2DGraphLayer\EdgeLength.cs" />
+    <Compile Include="Edit2DGraphLayer\FindInsideIntersectionPoint.cs" />
+    <Compile Include="Edit2DGraphLayer\FindNextIndex.cs" />
+    <Compile Include="Edit2DGraphLayer\FindVertexFromIndex.cs" />
+    <Compile Include="Edit2DGraphLayer\FlipMostRecentlySelectedEdge.cs" />
+    <Compile Include="Edit2DGraphLayer\AppendFromJSON.cs" />
+    <Compile Include="Edit2DGraphLayer\LoadFromJSON.cs" />
+    <Compile Include="Edit2DGraphLayer\MoveCurrentEdgeByWorldDelta.cs" />
+    <Compile Include="Edit2DGraphLayer\NewVertex.cs" />
+    <Compile Include="Edit2DGraphLayer\PointFromEdge.cs" />
+    <Compile Include="Edit2DGraphLayer\Properties.cs" />
+    <Compile Include="Edit2DGraphLayer\SelectEdgeByHoleGroupID.cs" />
+    <Compile Include="Edit2DGraphLayer\SplitEdgesAtIntersection.cs" />
+    <Compile Include="Edit2DGraphLayer\SplitMostRecentlySelectedEdge.cs" />
+    <Compile Include="Edit2DGraphLayer\GetPointFromIndex.cs" />
+    <Compile Include="Edit2DGraphLayer\stub.cs" />
+    <Compile Include="Edit2DGraphLayer\UnMergeMostRecentlySelectedHandle.cs" />
+    <Compile Include="Edit2DGraph\SelectEdgeByHoleGroupID.cs" />
+    <Compile Include="Edit2DGraph\FlipMostRecentlySelectedEdge.cs" />
+    <Compile Include="Edit2DGraph\DrawShapes_Layer.cs" />
+    <Compile Include="Edit2DGraph\PushLayer.cs" />
+    <Compile Include="Edit2DGraph\PopLayer.cs" />
+    <Compile Include="Edit2DGraph\FindEdgeByHoleGroupID.cs" />
+    <Compile Include="Edit2DHoleGroup\RemoveHoleFromHoleGroup.cs" />
+    <Compile Include="Edit2DHoleGroup\LoadFromJSON.cs" />
+    <Compile Include="Edit2DHoleGroup\AddHoleGroup.cs" />
+    <Compile Include="Edit2DHoleGroup\DeleteHoleGroup.cs" />
+    <Compile Include="Edit2DHoleGroup\SelectHoleGroup.cs" />
+    <Compile Include="Edit2DHoleGroup\GetHoleListLength.cs" />
+    <Compile Include="Edit2DHoleGroup\AddHoleToHoleList.cs" />
+    <Compile Include="Edit2DHoleGroup\InvertHolePoints.cs" />
+    <Compile Include="Edit2DHoleGroup\DuplicateCurrentHole.cs" />
+    <Compile Include="Enums.cs" />
+    <Compile Include="IDrawPrimitives.cs" />
+    <Compile Include="ListExtension.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SVector2\SVector.cs" />
+    <Compile Include="Edit2DBase\BaseMouseDown.cs" />
+    <Compile Include="Edit2DBase\BaseMouseMove.cs" />
+    <Compile Include="Edit2DBase\BaseMouseUp.cs" />
+    <Compile Include="Edit2DBase\Clear.cs" />
+    <Compile Include="Edit2DBase\Constructor.cs" />
+    <Compile Include="Edit2DBase\DrawAxis.cs" />
+    <Compile Include="Edit2DBase\DrawCircle.cs" />
+    <Compile Include="Edit2DBase\DrawEllipse.cs" />
+    <Compile Include="Edit2DBase\DrawGrid.cs" />
+    <Compile Include="Edit2DBase\DrawLine.cs" />
+    <Compile Include="Edit2DBase\DrawRectangle.cs" />
+    <Compile Include="Edit2DBase\GetUpperLeftWorld.cs" />
+    <Compile Include="Edit2DBase\Properties.cs" />
+    <Compile Include="Edit2DBase\RoundToGrid.cs" />
+    <Compile Include="Edit2DBase\S2W.cs" />
+    <Compile Include="Edit2DBase\SetZoom.cs" />
+    <Compile Include="Edit2DBase\stub.cs" />
+    <Compile Include="Edit2DBase\Virtual.Drawshapes.cs" />
+    <Compile Include="Edit2DBase\VirtualMethods.cs" />
+    <Compile Include="Edit2DBase\W2S.cs" />
+    <Compile Include="Edit2DGraph\AddEdge.cs" />
+    <Compile Include="Edit2DGraph\AddEdgeAtScreenPosition.cs" />
+    <Compile Include="Edit2DGraph\AddHoleInMostRecentlySelectedEdge.cs" />
+    <Compile Include="Edit2DGraph\AppendEdge.cs" />
+    <Compile Include="Edit2DGraph\Constructor.cs" />
+    <Compile Include="Edit2DGraph\DeleteCurrentEdge.cs" />
+    <Compile Include="Edit2DGraph\DeleteSelectedVertex.cs" />
+    <Compile Include="Edit2DGraph\EdgeCenter.cs" />
+    <Compile Include="Edit2DGraph\EdgeLength.cs" />
+    <Compile Include="Edit2DGraph\FindEdgeFromMouse.cs" />
+    <Compile Include="Edit2DGraph\FindHandleListAtScreenPoint.cs" />
+    <Compile Include="Edit2DGraph\FindInsideIntersectionPoint.cs" />
+    <Compile Include="Edit2DGraph\MoveCurrentEdgeByScreenDelta.cs" />
+    <Compile Include="Edit2DGraph\NewVertex.cs" />
+    <Compile Include="Edit2DGraph\Override.MouseDown.cs" />
+    <Compile Include="Edit2DGraph\Override.MouseMove.cs" />
+    <Compile Include="Edit2DGraph\Override.MouseUp.cs" />
+    <Compile Include="Edit2DGraph\Overrides.DrawShapes.cs" />
+    <Compile Include="Edit2DGraph\PointFromEdge.cs" />
+    <Compile Include="Edit2DGraph\Properties.cs" />
+    <Compile Include="Edit2DGraph\SplitEdgesAtIntersection.cs" />
+    <Compile Include="Edit2DGraph\SplitMostRecentlySelectedEdge.cs" />
+    <Compile Include="Edit2DGraph\stub.cs" />
+    <Compile Include="Edit2DGraph\TryEdgeSelect.cs" />
+    <Compile Include="Edit2DGraph\TryHandleSelect.cs" />
+    <Compile Include="Edit2DGraph\TryMergeHandle.cs" />
+    <Compile Include="Edit2DGraph\UnMergeMostRecentlySelectedHandle.cs" />
+    <Compile Include="Edit2DGraph\UpdateCurrentHandleToScreenPoint.cs" />
+    <Compile Include="Edit2DHoleGroup\AddEllipse.cs" />
+    <Compile Include="Edit2DHoleGroup\AddPolygon.cs" />
+    <Compile Include="Edit2DHoleGroup\AddRectangle.cs" />
+    <Compile Include="Edit2DHoleGroup\Constructor.cs" />
+    <Compile Include="Edit2DHoleGroup\DeleteCurrentHole.cs" />
+    <Compile Include="Edit2DHoleGroup\EdgeCenter.cs" />
+    <Compile Include="Edit2DHoleGroup\Overrides.DrawShapes.cs" />
+    <Compile Include="Edit2DHoleGroup\Overrides.DrawShapes.Ellipse.cs" />
+    <Compile Include="Edit2DHoleGroup\Overrides.DrawShapes.Polygon.cs" />
+    <Compile Include="Edit2DHoleGroup\Overrides.DrawShapes.Rectangle.cs" />
+    <Compile Include="Edit2DHoleGroup\Overrides.Mouse.cs" />
+    <Compile Include="Edit2DHoleGroup\Properties.cs" />
+    <Compile Include="Edit2DHoleGroup\RemoveCurrentPolygonVertex.cs" />
+    <Compile Include="Edit2DHoleGroup\SplitCurrentPolygonEdge.cs" />
+    <Compile Include="Edit2DHoleGroup\stub.cs" />
+    <Compile Include="Edit2DHoleGroup\TryHoleSelect.cs" />
+    <Compile Include="Edit2DHoleGroup\TryHoleSelect.TrySelectEllipse.cs" />
+    <Compile Include="Edit2DHoleGroup\TryHoleSelect.TrySelectPolygon.cs" />
+    <Compile Include="Edit2DHoleGroup\TryHoleSelect.TrySelectRectangle.cs" />
+    <Compile Include="Edit2DHoleGroup\UpdateCurrentHole.cs" />
+    <Compile Include="Edit2DHoleGroup\UpdateCurrentHole.Ellipse.cs" />
+    <Compile Include="Edit2DHoleGroup\UpdateCurrentHole.Polygon.cs" />
+    <Compile Include="Edit2DHoleGroup\UpdateCurrentHole.Rectangle.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
