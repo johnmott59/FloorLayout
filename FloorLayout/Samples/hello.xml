@@ -1,0 +1,45 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<template prop="" user="User0" name="floorlayoutinput">
+  <singleholegroup prop="outline">
+    <holegroup prop="oholegroup">
+      <property holegroupid="" />
+      <list name="holelist">
+        <layouthole prop="">
+          <property offsetx="-221" />
+          <property offsety="-178.5" />
+          <property holetype="rect" />
+          <property holetypeindex="0" />
+        </layouthole>
+      </list>
+    </holegroup>
+    <list name="rectanglearray">
+      <boundaryrectangle prop="" width="455" height="345" zdepth="0" />
+    </list>
+    <list name="ellipsearray" />
+    <list name="polygonarray" />
+  </singleholegroup>
+  <singleholegroup prop="openarea">
+    <holegroup prop="oholegroup">
+      <property holegroupid="" />
+      <list name="holelist">
+        <layouthole prop="">
+          <property offsetx="-298" />
+          <property offsety="-49.5" />
+          <property holetype="rect" />
+          <property holetypeindex="0" />
+        </layouthole>
+      </list>
+    </holegroup>
+    <list name="rectanglearray">
+      <boundaryrectangle prop="" width="431" height="54" zdepth="0" />
+    </list>
+    <list name="ellipsearray" />
+    <list name="polygonarray" />
+  </singleholegroup>
+  <list name="wallsegmentarray">
+    <linesegment prop="">
+      <point2d prop="from" x="328" y="-23.5" />
+      <point2d prop="to" x="28" y="-19.5" />
+    </linesegment>
+  </list>
+</template>

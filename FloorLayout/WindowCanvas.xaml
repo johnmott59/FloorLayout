@@ -1,0 +1,81 @@
+﻿<Window x:Class="FloorLayout.WindowCanvas"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:FloorLayout"
+        mc:Ignorable="d"
+        SizeChanged="Window_SizeChanged"
+        Title="CanvasWindow" Height="300" Width="600">
+    <Window.InputBindings>
+        <KeyBinding Command="{Binding LoadFloorCommand}"  Gesture="CTRL+O" />
+    </Window.InputBindings>
+    <Grid Name="MainGrid">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="20"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="130"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <DockPanel Grid.Row="0" Grid.Column="1">
+            <Menu Width="Auto" Height="20" Background="#FFA9D1F4" DockPanel.Dock="Top">
+                <MenuItem Header="_File">
+
+                    <MenuItem Header="_New"      Command="{Binding MenuItemNewCommand}"/>
+                    <MenuItem Header="_Open"     Command="{Binding MenuItemOpenCommand}" />
+                    <MenuItem Header="_Save"     Command="{Binding MenuItemSaveCommand}" />
+                    <MenuItem Header="Save _As"  Command="{Binding MenuItemSaveAsCommand}" />
+                    <MenuItem Header="_Close"    Command="{Binding MenuItemCloseCommand}" />
+                </MenuItem>
+            </Menu>
+        </DockPanel>
+
+        
+        <StackPanel Grid.Row="1" Grid.Column="0" >
+
+            <Button x:Name="btnQuickStart" 
+                    HorizontalAlignment="Left"  
+                    Command="{Binding QuickStartCommand}" 
+                    Content="Load QuickStart" />
+            
+            <Button x:Name="btnNew" 
+                    HorizontalAlignment="Left"  
+                    Command="{Binding MenuItemNewCommand}" 
+                    Content="New" />
+         
+            <Button x:Name="btnSketchOutline" 
+                    HorizontalAlignment="Left"  
+                    Command="{Binding SketchOutlineCommand}" 
+                    Content="Draw Outline" />
+            
+            <Button x:Name="btnSketchOpenArea" 
+                    HorizontalAlignment="Left"  
+                    Command="{Binding SketchOpenAreaCommand}" 
+                    Content="Draw Open Area" />
+            
+            <Button x:Name="btnSketchWall" 
+                    HorizontalAlignment="Left"  
+                    Command="{Binding SketchWallCommand}" 
+                    Content="Draw Wall" />
+            
+            <Button x:Name="btnGenerate" 
+                    HorizontalAlignment="Left"  
+                    Command="{Binding GenerateCommand}" 
+                    Content="Generate FBX" />            
+        </StackPanel>
+        
+        <Border Grid.Row="1" Grid.Column="1" Background="Transparent" BorderThickness="2"  BorderBrush="Black">
+            <Canvas  x:Name="layoutCanvas" Width="500" Height="400" Background="Transparent"
+                    MouseDown="layoutCanvas_MouseDown"
+                    MouseMove="layoutCanvas_MouseMove"
+                    MouseUp="layoutCanvas_MouseUp"
+                    Margin="0,0,0,0"
+                    >
+            </Canvas>
+        </Border>
+
+    </Grid>
+</Window>
