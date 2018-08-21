@@ -60,27 +60,6 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Templates\Compile.cs">
-      <DependentUpon>Wireframe.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Templates\EditorTabList.cs">
-      <DependentUpon>Wireframe.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Templates\FloorLayoutInput.cs">
-      <DependentUpon>Wireframe.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Templates\GetJSON.cs">
-      <DependentUpon>Wireframe.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Templates\GetProperties.cs">
-      <DependentUpon>Wireframe.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Templates\LoadJSON.cs">
-      <DependentUpon>Wireframe.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Templates\LoadProperties.cs">
-      <DependentUpon>Wireframe.tt</DependentUpon>
-    </Compile>
     <Compile Include="ViewModelCanvas\Utilities\GetFloorLayout.cs" />
     <Compile Include="ViewModelCanvas\Utilities\GetMesh.cs" />
     <Compile Include="WindowCanvas\Canvas.MouseDown.cs" />

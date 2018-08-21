@@ -37,6 +37,7 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Web" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -161,27 +162,6 @@
     <Compile Include="Edit2DHoleGroup\UpdateCurrentHole.Ellipse.cs" />
     <Compile Include="Edit2DHoleGroup\UpdateCurrentHole.Polygon.cs" />
     <Compile Include="Edit2DHoleGroup\UpdateCurrentHole.Rectangle.cs" />
-    <Compile Include="Templates\Compile.cs">
-      <DependentUpon>Wireframe.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Templates\EditorTabList.cs">
-      <DependentUpon>Wireframe.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Templates\FloorLayoutInput.cs">
-      <DependentUpon>Wireframe.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Templates\GetJSON.cs">
-      <DependentUpon>Wireframe.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Templates\GetProperties.cs">
-      <DependentUpon>Wireframe.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Templates\LoadJSON.cs">
-      <DependentUpon>Wireframe.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Templates\LoadProperties.cs">
-      <DependentUpon>Wireframe.tt</DependentUpon>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Content Include="Class Properties Only For Export\ReadMe.txt" />
