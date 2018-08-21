@@ -30,6 +30,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="ShapeTemplateLib, Version=1.6.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\ShapeTemplateLib.1.6.0\lib\net45\ShapeTemplateLib.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
@@ -46,7 +50,6 @@
     <Compile Include="Edit2DFloorLayoutInput\Overrides.Mouse.cs" />
     <Compile Include="Edit2DFloorLayoutInput\Properties.cs" />
     <Compile Include="Edit2DFloorLayoutInput\Overrides.DrawShapes.cs" />
-    <Compile Include="Edit2DFloorLayoutInput\stub.cs" />
     <Compile Include="Edit2DGraphLayer\AddEdge.cs" />
     <Compile Include="Edit2DGraphLayer\AddHoleInMostRecentlySelectedEdge.cs" />
     <Compile Include="Edit2DGraphLayer\AppendEdge.cs" />
@@ -69,7 +72,6 @@
     <Compile Include="Edit2DGraphLayer\SplitEdgesAtIntersection.cs" />
     <Compile Include="Edit2DGraphLayer\SplitMostRecentlySelectedEdge.cs" />
     <Compile Include="Edit2DGraphLayer\GetPointFromIndex.cs" />
-    <Compile Include="Edit2DGraphLayer\stub.cs" />
     <Compile Include="Edit2DGraphLayer\UnMergeMostRecentlySelectedHandle.cs" />
     <Compile Include="Edit2DGraph\SelectEdgeByHoleGroupID.cs" />
     <Compile Include="Edit2DGraph\FlipMostRecentlySelectedEdge.cs" />
@@ -107,7 +109,6 @@
     <Compile Include="Edit2DBase\RoundToGrid.cs" />
     <Compile Include="Edit2DBase\S2W.cs" />
     <Compile Include="Edit2DBase\SetZoom.cs" />
-    <Compile Include="Edit2DBase\stub.cs" />
     <Compile Include="Edit2DBase\Virtual.Drawshapes.cs" />
     <Compile Include="Edit2DBase\VirtualMethods.cs" />
     <Compile Include="Edit2DBase\W2S.cs" />
@@ -133,7 +134,6 @@
     <Compile Include="Edit2DGraph\Properties.cs" />
     <Compile Include="Edit2DGraph\SplitEdgesAtIntersection.cs" />
     <Compile Include="Edit2DGraph\SplitMostRecentlySelectedEdge.cs" />
-    <Compile Include="Edit2DGraph\stub.cs" />
     <Compile Include="Edit2DGraph\TryEdgeSelect.cs" />
     <Compile Include="Edit2DGraph\TryHandleSelect.cs" />
     <Compile Include="Edit2DGraph\TryMergeHandle.cs" />
@@ -153,7 +153,6 @@
     <Compile Include="Edit2DHoleGroup\Properties.cs" />
     <Compile Include="Edit2DHoleGroup\RemoveCurrentPolygonVertex.cs" />
     <Compile Include="Edit2DHoleGroup\SplitCurrentPolygonEdge.cs" />
-    <Compile Include="Edit2DHoleGroup\stub.cs" />
     <Compile Include="Edit2DHoleGroup\TryHoleSelect.cs" />
     <Compile Include="Edit2DHoleGroup\TryHoleSelect.TrySelectEllipse.cs" />
     <Compile Include="Edit2DHoleGroup\TryHoleSelect.TrySelectPolygon.cs" />
@@ -162,6 +161,46 @@
     <Compile Include="Edit2DHoleGroup\UpdateCurrentHole.Ellipse.cs" />
     <Compile Include="Edit2DHoleGroup\UpdateCurrentHole.Polygon.cs" />
     <Compile Include="Edit2DHoleGroup\UpdateCurrentHole.Rectangle.cs" />
+    <Compile Include="Templates\Compile.cs">
+      <DependentUpon>Wireframe.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Templates\EditorTabList.cs">
+      <DependentUpon>Wireframe.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Templates\FloorLayoutInput.cs">
+      <DependentUpon>Wireframe.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Templates\GetJSON.cs">
+      <DependentUpon>Wireframe.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Templates\GetProperties.cs">
+      <DependentUpon>Wireframe.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Templates\LoadJSON.cs">
+      <DependentUpon>Wireframe.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Templates\LoadProperties.cs">
+      <DependentUpon>Wireframe.tt</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Class Properties Only For Export\ReadMe.txt" />
+    <Content Include="Templates\Wireframe.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>Wireframe1.txt</LastGenOutput>
+    </Content>
+    <Content Include="Templates\Wireframe.txt" />
+    <Content Include="Templates\Wireframe1.txt">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Wireframe.tt</DependentUpon>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

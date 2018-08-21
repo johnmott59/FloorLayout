@@ -36,6 +36,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="PresentationFramework" />
+    <Reference Include="ShapeTemplateLib, Version=1.6.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\ShapeTemplateLib.1.6.0\lib\net45\ShapeTemplateLib.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
@@ -56,6 +60,27 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Templates\Compile.cs">
+      <DependentUpon>Wireframe.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Templates\EditorTabList.cs">
+      <DependentUpon>Wireframe.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Templates\FloorLayoutInput.cs">
+      <DependentUpon>Wireframe.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Templates\GetJSON.cs">
+      <DependentUpon>Wireframe.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Templates\GetProperties.cs">
+      <DependentUpon>Wireframe.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Templates\LoadJSON.cs">
+      <DependentUpon>Wireframe.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Templates\LoadProperties.cs">
+      <DependentUpon>Wireframe.tt</DependentUpon>
+    </Compile>
     <Compile Include="ViewModelCanvas\Utilities\GetFloorLayout.cs" />
     <Compile Include="ViewModelCanvas\Utilities\GetMesh.cs" />
     <Compile Include="WindowCanvas\Canvas.MouseDown.cs" />
@@ -127,6 +152,7 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -145,9 +171,23 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Resource Include="Class Properties Only For Export\ReadMe.txt" />
     <Content Include="Samples\hello.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Templates\Wireframe.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>Wireframe1.txt</LastGenOutput>
+    </Content>
+    <Resource Include="Templates\Wireframe1.txt">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Wireframe.tt</DependentUpon>
+    </Resource>
+    <Resource Include="Templates\Wireframe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
