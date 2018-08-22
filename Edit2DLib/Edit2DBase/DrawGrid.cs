@@ -22,14 +22,14 @@ namespace Edit2DLib
             WorldCenter.Y = RoundToGrid((int)WorldCenter.Y);
 
             int HorizontalLines = clientHeight / this.GridSize / 2;
-            int HorizontalWidth = clientWidth / 2;
+            int HorizontalWidth = clientWidth /  2;
 
             for (int i = -HorizontalLines; i < HorizontalLines; i++)
             {
                 float Y = i * GridSize + WorldCenter.Y;
                 PointF From = new PointF(-HorizontalWidth + WorldCenter.X, Y);
                 PointF To = new PointF(HorizontalWidth + WorldCenter.X, Y);
-                DrawLine("rgba(30,30,30,.5)",(float).25, this.W2S(From.X, From.Y), this.W2S(To.X, To.Y));
+                DrawLine("rgba(30,30,30,.25)",(float).25, this.W2S(From.X, From.Y), this.W2S(To.X, To.Y));
             }
 
             int VerticalLines = clientWidth / GridSize / 2;
@@ -40,7 +40,7 @@ namespace Edit2DLib
                 float X = i * GridSize + WorldCenter.X;
                 PointF From = new PointF(X, -VerticalWidth + WorldCenter.Y);
                 PointF To = new PointF(X, VerticalWidth + WorldCenter.Y);
-                DrawLine("rgba(30,30,30,.5)", (float).25, this.W2S(From.X, From.Y), this.W2S(To.X, To.Y));
+                DrawLine("rgba(30,30,30,.25)", (float).25, this.W2S(From.X, From.Y), this.W2S(To.X, To.Y));
             }
         }
     }

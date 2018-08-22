@@ -60,6 +60,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="ViewModelCanvas\Events\SizeChanged.cs" />
     <Compile Include="ViewModelCanvas\Utilities\GetFloorLayout.cs" />
     <Compile Include="ViewModelCanvas\Utilities\GetMesh.cs" />
     <Compile Include="WindowCanvas\Canvas.MouseDown.cs" />
@@ -150,20 +151,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Class Properties Only For Export\ReadMe.txt" />
     <Content Include="Samples\hello.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Templates\Wireframe.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>Wireframe1.txt</LastGenOutput>
-    </Content>
-    <Resource Include="Templates\Wireframe1.txt">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Wireframe.tt</DependentUpon>
-    </Resource>
-    <Resource Include="Templates\Wireframe.txt" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />

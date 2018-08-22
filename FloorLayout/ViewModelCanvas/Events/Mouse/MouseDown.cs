@@ -25,9 +25,12 @@ namespace FloorLayout
              */
             if (SketchShapeIndex == -1)
             {
-                StartSketch = ScreenPoint;
-                EndSketch = ScreenPoint;
-               
+                int rx = oFWRInput.RoundToGrid((int)ScreenPoint.X);
+                int ry = oFWRInput.RoundToGrid((int)ScreenPoint.Y);
+
+                StartSketch = new Point(rx, ry); 
+                EndSketch = new Point(rx, ry); 
+
                 switch (CurrentSketchMode)
                 {
                     case eSketchMode.SketchWall:
@@ -36,6 +39,7 @@ namespace FloorLayout
                         Line line = new Line();
                         line.Stroke = Brushes.OrangeRed;
                         line.StrokeThickness = 5;
+
                         line.X1 = (double)StartSketch.X;
                         line.Y1 = (double)StartSketch.Y;
                         line.X2 = (double)EndSketch.X;

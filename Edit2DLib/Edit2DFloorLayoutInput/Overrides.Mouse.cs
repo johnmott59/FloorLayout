@@ -10,11 +10,13 @@
             /*
              * Try to capture something in the outline, then the open area, in turn
              */
-            if (OutlineAreas.TryHoleSelect(ScreenMouseX, ScreenMouseY)) return eMouseDownCapture.VertexHandle;
+            eMouseDownCapture sts = OutlineAreas.MouseDown(ScreenMouseX, ScreenMouseY);
+            if (sts != eMouseDownCapture.Nothing) return sts;
 
-            if (OpenAreas.TryHoleSelect(ScreenMouseX, ScreenMouseY)) return eMouseDownCapture.VertexHandle;
+            sts = OpenAreas.MouseDown(ScreenMouseX, ScreenMouseY);
+            if (sts != eMouseDownCapture.Nothing) return sts;
 
-            eMouseDownCapture sts = Walls.MouseDown(ScreenMouseX, ScreenMouseY);
+            sts = Walls.MouseDown(ScreenMouseX, ScreenMouseY);
 
             return sts;
 

@@ -121,6 +121,24 @@ namespace FloorLayout
                 return b;
             }
 
+            if (color[0] == 'r')
+            {
+                color = color.Replace("rgba(", "").Replace(")", "");
+                string[] components = color.Split(",".ToCharArray());
+                byte ired = (byte)int.Parse(components[0]);
+                byte igreen= (byte)int.Parse(components[1]);
+                byte iblue = (byte)int.Parse(components[2]);
+                float alpha = float.Parse(components[3]);
+
+                // Convert alpha to range in 0 - 255
+                alpha *= 255;
+                byte ialpha = (byte)alpha;
+
+                return new SolidColorBrush(System.Windows.Media.Color.FromArgb(ialpha, ired, igreen, iblue));
+                
+            }
+
+            // "rgba(30,30,30,.25)
             return System.Windows.Media.Brushes.Black;
         }
 

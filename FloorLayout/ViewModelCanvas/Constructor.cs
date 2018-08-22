@@ -23,9 +23,16 @@ namespace FloorLayout
             // Save the canvas
             this.oCanvas = oCanvas;
             oDrawPrimitives = new DrawPrimitives() { oCanvas = oCanvas };
+
+            oFWRInput.GridSize = 5;
+            oFWRInput.OpenAreas.GridSize = 5;
+            oFWRInput.OutlineAreas.GridSize = 5;
+            oFWRInput.Walls.GridSize = 5;
         }
 
-
+        /// <summary>
+        /// This is a sample of how to do binding to a property on the class side
+        /// </summary>
         private string _SomeText = "";
         public string SomeText
         {

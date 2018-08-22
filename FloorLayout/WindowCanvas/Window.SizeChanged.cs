@@ -16,6 +16,8 @@ namespace FloorLayout
 
             layoutCanvas.Width = MainGrid.ColumnDefinitions[1].ActualWidth;
             layoutCanvas.Height = MainGrid.RowDefinitions[1].ActualHeight;
+
+            oViewModel.SizeChanged();
         }
     }
 

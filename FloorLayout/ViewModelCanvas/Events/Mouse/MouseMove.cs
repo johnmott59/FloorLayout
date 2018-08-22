@@ -25,8 +25,10 @@ namespace FloorLayout
                 {
                     case eSketchMode.SketchWall:
                         Line line = (Line)oCanvas.Children[SketchShapeIndex];
-                        line.X2 = (double)EndSketch.X;
-                        line.Y2 = (double)EndSketch.Y;
+
+                        line.X2 = oFWRInput.RoundToGrid((int)EndSketch.X);
+                        line.Y2 = oFWRInput.RoundToGrid((int)EndSketch.Y);
+
                         break;
 
                     case eSketchMode.SketchOutline:
@@ -37,8 +39,12 @@ namespace FloorLayout
 
                         double width = EndSketch.X - StartSketch.X;
                         double height = EndSketch.Y - StartSketch.Y;
-                        if (width > 0) r.Width = width;
-                        if (height > 0) r.Height = height;
+
+                        int iwidth = oFWRInput.RoundToGrid((int)width);
+                        int iheight = oFWRInput.RoundToGrid((int)height);
+
+                        if (width > 0) r.Width = iwidth;
+                        if (height > 0) r.Height = iheight;
                         break;
                 }
                 return;

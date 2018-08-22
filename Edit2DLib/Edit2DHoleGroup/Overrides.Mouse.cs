@@ -7,6 +7,9 @@
          */
        override  public eMouseDownCapture MouseDown(int ScreenMouseX, int ScreenMouseY)
         {
+            // clear the selected hole
+            CurrentlySelectedHole = null;
+
             if (TryHoleSelect(ScreenMouseX, ScreenMouseY)) return eMouseDownCapture.VertexHandle;
 
             return eMouseDownCapture.Nothing;

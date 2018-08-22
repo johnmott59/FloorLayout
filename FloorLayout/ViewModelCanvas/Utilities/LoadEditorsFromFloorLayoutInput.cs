@@ -15,6 +15,10 @@ namespace FloorLayout
         public void LoadEditorsFromFloorLayoutInput(FloorLayoutInput fli)
         {
             oFWRInput = new Edit2DFloorLayoutInput();
+            oFWRInput.GridSize = GridSize;
+            oFWRInput.OutlineAreas.GridSize = GridSize;
+            oFWRInput.OpenAreas.GridSize = GridSize;
+            oFWRInput.Walls.GridSize = GridSize;
 
             // Reset canvase
             oCanvas.Children.Clear();

@@ -21,6 +21,8 @@ namespace FloorLayout
             SketchOpenArea,
         }
 
+        public int GridSize { get; set; } = 10;
+
         public eSketchMode CurrentSketchMode = eSketchMode.None;
         /*
          * This is the edit controller for the the drawing, it manages all the drawings
