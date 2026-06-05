@@ -1,0 +1,22 @@
+    public partial class Point3D 
+{
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        public Point3D()
+        {
+
+        }
+
+        [HelpProperty(XPropertyPosition = HelpPropertyAttribute.eXPropertyPosition.AttributeOfParent, SampleValue ="13.4")]
+        public float X { get; set; }
+        [HelpProperty(XPropertyPosition = HelpPropertyAttribute.eXPropertyPosition.AttributeOfParent, SampleValue = "2")]
+        public float Y { get; set; }
+        [HelpProperty(XPropertyPosition = HelpPropertyAttribute.eXPropertyPosition.AttributeOfParent, SampleValue = "-34.2")]
+        public float Z { get; set; }
+
+      
+
+
+
+}

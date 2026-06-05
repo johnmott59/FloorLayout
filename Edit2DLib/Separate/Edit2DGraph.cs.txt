@@ -1,0 +1,1062 @@
+public class Edit2DGraph : Edit2DBase
+{
+        // Add a new line into the simple layout struct, new vertices and a new edge
+
+
+
+        public eOperationStatus AddEdge(PointF WorldFrom, PointF WorldTo,int Width, int Height)
+        {
+            int nextindex = FindNextIndex();
+
+            Vertex vP1 = new Vertex();
+            vP1.Index = nextindex++;
+            vP1.X = WorldFrom.X;
+            vP1.Y = WorldFrom.Y;
+            VertexList.Add(vP1);
+
+            Vertex vP2 = new Vertex();
+            vP2.Index = nextindex++;
+            vP2.X = WorldTo.X;
+            vP2.Y = WorldTo.Y;
+            VertexList.Add(vP2);
+
+            // Now add a segment
+
+            Edge oEdge = new Edge();
+            oEdge.Height = 30;
+            oEdge.Width = 10;
+            oEdge.p1 = vP1.Index;
+            oEdge.p2 = vP2.Index;
+            oEdge.ID = "";
+            oEdge.HoleGroupID = "";
+
+            EdgeList.Add(oEdge);
+
+            // redraw shapes
+            DrawShapes();
+ 
+            return eOperationStatus.OK;
+
+        }
+
+
+        public eOperationStatus AddEdgeAtScreenPosition(int OffsetX, int OffsetY, int ScreenLength, int Width, int Height)
+        {
+            PointF p = new PointF(OffsetX, OffsetY);
+
+            var WorldCenter = this.S2W(p.X,p.Y);
+            float Scale = this.CurrentZoom * ScreenLength;
+
+            PointF WorldFrom = new PointF(WorldCenter.X - Scale, WorldCenter.Y - Scale);
+            PointF WorldTo = new PointF(WorldCenter.X + Scale, WorldCenter.Y + Scale);
+
+            return AddEdge(WorldFrom, WorldTo, Width, Height);
+
+        }
+
+
+        public eOperationStatus AddHoleInMostRecentlySelectedEdge(int Width)
+        {
+            if (EdgeList.Count == 0)
+            {
+                return eOperationStatus.NoEdgesDefined;
+            }
+
+            if (MostRecentlySelectedEdge == null)
+            {
+                return eOperationStatus.NoEdgeSelected;
+            }
+
+            double thisEdgeLength = EdgeLength(MostRecentlySelectedEdge);
+
+            if (Width >= thisEdgeLength) return eOperationStatus.EdgeNotWideEnoughForOperation;
+
+            // Determine the interpolations based on the width and length
+
+            float WidthPercent = (float)(Width / thisEdgeLength);
+
+            Vertex v1 = FindVertexFromIndex(MostRecentlySelectedEdge.p1);
+            Vertex v2 = FindVertexFromIndex(MostRecentlySelectedEdge.p2);
+            /*
+             * Create vectors of the end points
+             */
+            SVector2 f = new SVector2(v1.X, v1.Y);
+            SVector2 t = new SVector2(v2.X, v2.Y);
+
+            // Find a new end point and add a vertex for it
+            float lowpercent = (float) .5 - WidthPercent;
+            SVector2 LowPartVector = SVector2.Interpolate(f, t, lowpercent);
+            Vertex vNew1 = NewVertex(LowPartVector.X, LowPartVector.Y);
+
+            // Create a new edge and add it
+            Edge newEdge = new Edge();
+            newEdge.Width = MostRecentlySelectedEdge.Width;
+            newEdge.Height = MostRecentlySelectedEdge.Height;
+            newEdge.ID = "";
+            newEdge.HoleGroupID = "";
+            newEdge.p1 = MostRecentlySelectedEdge.p1;
+            newEdge.p2 = vNew1.Index;
+            EdgeList.Add(newEdge);
+
+            // Add a new vertex for the other position on the other side of the hole
+            float highpercent =  (float) .5 + WidthPercent;
+            SVector2 HighPartVector = SVector2.Interpolate(f, t, highpercent);
+            Vertex vNew2 = NewVertex(HighPartVector.X, HighPartVector.Y);
+
+            // Modify the currently selected edge so that it starts at the vnew2 
+
+            MostRecentlySelectedEdge.p1 = vNew2.Index;
+
+            // trigger redraw
+            DrawShapes();
+
+            return eOperationStatus.OK;
+        }
+
+
+        public eOperationStatus AppendEdge(int Width, int Height,int DeltaX, int DeltaY)
+        {
+            if (MostRecentlySelectedVertex == null) return eOperationStatus.NoVertexSelected;
+
+            // Add a new point
+            int nextindex = FindNextIndex();
+
+            Vertex vP = new Vertex();
+            vP.Index = nextindex;
+            vP.X = MostRecentlySelectedVertex.X + DeltaX;
+            vP.Y = MostRecentlySelectedVertex.Y + DeltaY;
+            VertexList.Add(vP);
+
+            // Add an edge 
+
+            Edge oEdge = new Edge();
+            oEdge.Height = Height;
+            oEdge.Width = Width;
+            oEdge.p1 = MostRecentlySelectedVertex.Index;
+            oEdge.p2 = vP.Index;
+            oEdge.ID = "";
+            oEdge.HoleGroupID = "";
+
+            EdgeList.Add(oEdge);
+
+            // Redraw shapes
+            DrawShapes();
+
+            return eOperationStatus.OK;
+        }
+
+
+        public Edit2DGraph()
+        {
+            //  This is a trick to get code to show up when pasting into typescript.
+            // Because this method is extracted from the class by a program that skips the top of the file
+            // the #define won't be picked up. At the same time when the typescript paste occurs the
+            // compiler will evaluate the #define and generate the 'else', which will be appropriate for javascript.
+#if DOTNET
+#else
+            super();
+#endif
+         
+            VertexList = new List<Vertex>();
+            EdgeList = new List<Edge>();
+
+
+        }
+
+
+        public eOperationStatus DeleteCurrentEdge()
+        {
+            // delete the most recently selected edge, 
+            Edge oEdgeToDelete = null;
+
+            if (MostRecentlySelectedEdge == null)
+            {
+                return eOperationStatus.NoEdgeSelected;
+            }
+            int IndexOfEdgeToDelete = -1;
+            for (int i=0; i < EdgeList.Count; i++)
+            {
+                oEdgeToDelete = EdgeList.GetFrom(i);
+
+                if (oEdgeToDelete == MostRecentlySelectedEdge) { 
+                    IndexOfEdgeToDelete = i;
+                    break;
+                }
+            }
+
+            if (IndexOfEdgeToDelete == -1) return eOperationStatus.NoEdgeSelected;
+            
+            /*
+             * When deleting an edge we have to account for the vertices. Each of the vertices may be shared or not. 
+             * If a vertex isn't shared we delete it as well
+             */
+            int p1ReferenceCount = 0;
+            int p2ReferenceCount = 0;
+
+            for (int i = 0; i < EdgeList.Count; i++)
+            {
+                Edge e = EdgeList.GetFrom(i);
+
+                // Note that this will include the edge we are deleting. that's fine, we account for that
+
+                if (e.p1 == oEdgeToDelete.p1) p1ReferenceCount++;
+                if (e.p2 == oEdgeToDelete.p1) p1ReferenceCount++;
+
+                if (e.p1 == oEdgeToDelete.p2) p2ReferenceCount++;
+                if (e.p2 == oEdgeToDelete.p2) p2ReferenceCount++;
+            }
+            /*
+             * If either of the reference counts are 1 that means that only the edge to be deleted contained it, 
+             * and we can delete that vertex
+             */
+             if (p1ReferenceCount == 1)
+            {
+                for (int i=0; i < VertexList.Count; i++)
+                {
+                    Vertex v = VertexList.GetFrom(i);
+                    if (v.Index == oEdgeToDelete.p1)
+                    {
+                        VertexList.RemoveAt(i);
+                        break;
+                    }
+                }
+            }
+
+            if (p2ReferenceCount == 1)
+            {
+                for (int i = 0; i < VertexList.Count; i++)
+                {
+                    Vertex v = VertexList.GetFrom(i);
+                    if (v.Index == oEdgeToDelete.p2)
+                    {
+                        VertexList.RemoveAt(i);
+                        break;
+                    }
+                }
+            }
+
+            // Now delete the edge
+
+            EdgeList.RemoveAt(IndexOfEdgeToDelete);
+
+            // Trigger redraw
+
+            DrawShapes();
+
+            return eOperationStatus.OK;
+        }
+
+
+
+        public eOperationStatus DeleteSelectedVertex()
+        {
+            // If there is not a most recently selected handle return
+
+            if (MostRecentlySelectedVertex == null) return eOperationStatus.NoVertexSelected;
+
+            /*
+             * This vertex must have exactly two different edges coming into it
+             */
+            int ReferenceCount = 0;
+            List<Edge> ConnectingEdgeList = new List<Edge>();
+
+            for (int i=0; i < EdgeList.Count; i++)
+            {
+                Edge oEdge = EdgeList.GetFrom(i);
+                if (oEdge.p1 == MostRecentlySelectedVertex.Index)
+                {
+                    ReferenceCount++;
+                    ConnectingEdgeList.Add(oEdge);
+                }
+                if (oEdge.p2 == MostRecentlySelectedVertex.Index)
+                {
+                    ReferenceCount++;
+                    ConnectingEdgeList.Add(oEdge);
+                }
+            }
+
+            if (ReferenceCount != 2) return eOperationStatus.MustBeTwoConnectingEdgesForOperation;
+
+            // Get the from and to points of the remade edge
+            int NewP1 = -1;
+            int NewP2 = -1;
+
+            Edge oEdge0 = ConnectingEdgeList.GetFrom(0);
+            if (oEdge0.p1 == MostRecentlySelectedVertex.Index)
+            {
+                NewP1 = oEdge0.p2;
+            } else
+            {
+                NewP1 = oEdge0.p1;
+            }
+
+            Edge oEdge1 = ConnectingEdgeList.GetFrom(1);
+            if (oEdge1.p2 == MostRecentlySelectedVertex.Index)
+            {
+                NewP2 = oEdge1.p1;
+            }
+            else
+            {
+                NewP2 = oEdge1.p2;
+            }
+
+            // Replace the p1 and p2 in the 0th edge and delete the 1th edge. We know that the current handle
+            // will be redundant so we can delete it.
+
+            oEdge0.p1 = NewP1;
+            oEdge0.p2 = NewP2;
+
+            // delete the current handle, it the one we're removing 
+            for (int i=0; i < VertexList.Count; i++)
+            {
+                Vertex v = VertexList.GetFrom(i);
+                if (v.Index == MostRecentlySelectedVertex.Index)
+                {
+                    VertexList.RemoveAt(i);
+                    break;
+                }
+            }
+
+            // Delete the 1th edge. 
+
+            for (int i=0; i < EdgeList.Count; i++)
+            {
+                Edge e = EdgeList.GetFrom(i);
+                if (e == oEdge1)
+                {
+                    EdgeList.RemoveAt(i);
+                    break;
+                }
+            }
+
+            // trigger redraw
+            DrawShapes();
+
+            return eOperationStatus.OK;
+
+        }
+
+
+        public PointF EdgeCenter(Edge oEdge)
+        {
+            PointF P1 = EdgeP1(oEdge);
+            PointF P2 = EdgeP2(oEdge);
+
+            float dx = P1.X - P2.X;
+            float dy = P1.Y - P2.Y;
+            /*
+             * The connection point for this edge is the normal
+             */
+            return new PointF((dx) / 2 + P2.X, (dy) / 2 + P2.Y);
+        }
+
+
+        public double EdgeLength(Edge oEdge)
+        {
+            PointF P1 = EdgeP1(oEdge);
+            PointF P2 = EdgeP2(oEdge);
+
+            float dx = P1.X - P2.X;
+            float dy = P1.Y - P2.Y;
+
+            return Math.sqrt((dx * dx + dy * dy));
+
+        }
+
+
+        /// <summary>
+        /// Find the shape that's closest to the mouse X,Y
+        /// </summary>
+        /// <param name="ScreenMouseX"></param>
+        /// <param name="ScreenMouseY"></param>
+        /// <returns></returns>
+        /// 
+        protected Edge FindEdgeFromMouse (int ScreenMouseX, int ScreenMouseY)
+        {
+            for (int i=0; i <  EdgeList.Count; i++)
+            {
+                Edge pe = EdgeList.GetFrom(i);
+
+                // Find the center point of the edge
+
+                PointF Center = EdgeCenter(pe);
+
+                PointF CenterScreen = this.W2S(Center.X, Center.Y);
+
+                double distance = Math.sqrt(
+                                 (ScreenMouseX - CenterScreen.X) * (ScreenMouseX - CenterScreen.X) +
+                                 (ScreenMouseY - CenterScreen.Y) * (ScreenMouseY - CenterScreen.Y));
+
+                if (distance < 10)
+                {
+                    return pe;
+                }
+            }
+
+            return null;
+        }
+
+
+        /// <summary>
+        /// Find all handles that are close to the current screen position
+        /// </summary>
+        /// <param name="ScreenMouseX"></param>
+        /// <param name="ScreenMouseY"></param>
+        /// <returns></returns>
+        /// 
+        public List<Vertex> FindVertextListAtScreenPoint(int ScreenMouseX,int ScreenMouseY)
+        {
+            List<Vertex> list = new List<Vertex>();
+
+            for (int i=0; i < VertexList.Count; i++)
+            {
+                Vertex v = VertexList.GetFrom(i);               
+                PointF ScreenCoordinates = W2S(v.X,v.Y);
+
+                double distance = Math.sqrt(
+                     (ScreenMouseX - ScreenCoordinates.X) * (ScreenMouseX - ScreenCoordinates.X) +
+                     (ScreenMouseY - ScreenCoordinates.Y) * (ScreenMouseY - ScreenCoordinates.Y));
+
+                if (distance < 10)
+                {
+                    list.Add(v);
+                }
+            }
+
+            return list;
+        }
+
+
+        public PointF? FindInsideIntersectionPoint(Edge peGreen, Edge peBlue)
+        {
+
+            // We can see now if there is a common point. If there is a common point they don't intersect
+            if (peGreen.p1 == peBlue.p1 || 
+                peGreen.p1 == peBlue.p2 ||
+                peGreen.p2 == peBlue.p1 ||
+                peGreen.p2 == peBlue.p2)
+            {
+                // no intersection, there is a common point
+                return null;
+            }
+
+            Vertex GreenFrom = FindVertexFromIndex(peGreen.p1);
+            Vertex GreenTo = FindVertexFromIndex(peGreen.p2);
+
+            Vertex BlueFrom = FindVertexFromIndex(peBlue.p1);
+            Vertex BlueTo = FindVertexFromIndex(peBlue.p2);
+
+            /*
+             * Are they parallel?
+             */
+
+            float par = (float)((GreenTo.X - GreenFrom.X) * (BlueTo.Y - BlueFrom.Y) -
+                           (GreenTo.Y - GreenFrom.Y) * (BlueTo.X - BlueFrom.X));
+
+            if (par == 0)
+            {
+                return null;                               /* parallel lines */
+            }
+            /*
+             * Find the proportional distance from one point to another
+             */
+            float tp = ((BlueFrom.X - GreenFrom.X) * (BlueTo.Y - BlueFrom.Y) - (BlueFrom.Y - GreenFrom.Y) * (BlueTo.X - BlueFrom.X)) / par;
+            float tq = ((GreenTo.Y - GreenFrom.Y) * (BlueFrom.X - GreenFrom.X) - (GreenTo.X - GreenFrom.X) * (BlueFrom.Y - GreenFrom.Y)) / par;
+            /*
+             * If the distance isn't between 0 and 1 the segments don't intersect
+             */
+            if (tp < 0 || tp > 1 || tq < 0 || tq > 1)
+            {
+                return null;
+            }
+
+            return new PointF(GreenFrom.X + tp * (GreenTo.X - GreenFrom.X), GreenFrom.Y + tp * (GreenTo.Y - GreenFrom.Y));
+
+        }
+
+
+        protected int FindNextIndex()
+        {
+            // add two new vertices. Find the next available index
+            int highestindex = -1;
+            for (int i = 0; i < VertexList.Count; i++)
+            {
+                Vertex vTmp = VertexList.GetFrom(i);
+                if (vTmp.Index > highestindex)
+                {
+                    highestindex = vTmp.Index;
+                }
+            }
+            int nextindex = highestindex + 1;
+            return nextindex;
+
+        } 
+
+
+        public Vertex FindVertexFromIndex(int index)
+        {
+            for (int i=0; i < VertexList.Count; i++)
+            {
+                Vertex v = VertexList.GetFrom(i);
+                if (v.Index == index) return v;
+            }
+
+            return null;
+        }
+
+
+        public void LoadFromJSON(Edge[] EdgeArray, Vertex[] VertexArray)
+        {
+            VertexList = new List<Vertex>();
+            for (int i=0; i < VertexArray.Length; i++)
+            {
+                VertexList.Add(VertexArray[i]);
+            }
+
+            EdgeList = new List<Edge>();
+            for (int i = 0; i < EdgeArray.Length; i++)
+            {
+                EdgeList.Add(EdgeArray[i]);
+            }
+        }
+
+
+        public eOperationStatus MoveCurrentEdgeByScreenDelta(int ScreenDeltaX, int ScreenDeltaY)
+        {
+            if (CurrentlySelectedEdge == null) return eOperationStatus.NoEdgeSelected;
+
+            int WorldDeltaX = (int)((float)ScreenDeltaX * this.CurrentZoom);
+            int WorldDeltaY = (int)((float)ScreenDeltaY * this.CurrentZoom);
+
+            /*
+             * update the vertices associated with this edge. This will automatically move all edges associated with it
+             */
+
+            Vertex P1Vertex = FindVertexFromIndex(CurrentlySelectedEdge.p1);
+            P1Vertex.X += WorldDeltaX;
+            P1Vertex.Y += WorldDeltaY;
+
+
+            Vertex P2Vertex = FindVertexFromIndex(CurrentlySelectedEdge.p2);
+            P2Vertex.X += WorldDeltaX;
+            P2Vertex.Y += WorldDeltaY;
+
+            return eOperationStatus.OK;
+        }
+
+
+        protected Vertex NewVertex(float X, float Y)
+        {
+            Vertex vNew = new Vertex();
+            vNew.Index = FindNextIndex();
+            vNew.X = X;
+            vNew.Y = Y;
+
+            VertexList.Add(vNew);
+
+            return vNew;
+        }
+      
+
+
+        /*
+         * Sub classes will override these methods to implement mouse operations on their canvas
+         */
+       override  public eMouseDownCapture MouseDown(int ScreenMouseX, int ScreenMouseY)
+        {
+            /*
+              * Try to select a vertex handle first, then an edge handle. The order actually isn't important,
+             * only that we try to select one or the other
+             */
+            if (TryHandleSelect(ScreenMouseX, ScreenMouseY)) return eMouseDownCapture.VertexHandle;
+
+            // See if we selected an edge handle
+            if (TryEdgeSelect(ScreenMouseX, ScreenMouseY)) return eMouseDownCapture.EdgeHandle;
+
+            return eMouseDownCapture.Nothing;
+        }
+
+   
+
+
+
+        override public bool MouseMove(eMouseState MouseState, int ScreenMouseX, int ScreenMouseY, int ScreenDeltaX, int ScreenDeltaY)
+        {
+            if (CurrentlySelectedVertex != null)
+            {
+                UpdateCurrentHandleToScreenPoint(ScreenMouseX, ScreenMouseY);
+                return true;
+            }
+
+            if (CurrentlySelectedEdge != null)
+            {
+                MoveCurrentEdgeByScreenDelta(ScreenDeltaX, ScreenDeltaY);
+                return true;
+            }
+
+
+            return false;
+        }
+
+
+
+
+   
+
+        override public void MouseUp(int ScreenMouseX, int ScreenMouseY)
+        {
+            // If we were dragging a vertex around see if we can merge it with an existing close vertex
+            TryMergeVertex(ScreenMouseX, ScreenMouseY);
+            /*
+             * Reset the current handle and current edge
+             */
+            CurrentlySelectedVertex = null;
+
+            CurrentlySelectedEdge = null;
+        }
+
+
+
+        protected PointF GetPointFromIndex(int index)
+        {
+            for (int i=0; i < VertexList.Count; i++)
+            {
+                Vertex v = VertexList.GetFrom(i);
+                if (v.Index == index)
+                {
+                    return new PointF(v.X, v.Y);
+                }
+            }
+            return new PointF(0, 0);
+        }
+
+        // ---------------------------------------------------
+        public override void DrawShapes()
+        {
+            this.Clear("#FFFFFF");
+
+            DrawGrid();
+
+            DrawAxis();
+
+
+            // Draw the edges
+            for (int i=0; i < EdgeList.Count; i++)
+            {
+                // Get screen From and To
+                Edge oEdge = EdgeList.GetFrom(i);
+
+                bool bIsCurrentEdge = oEdge == MostRecentlySelectedEdge;
+
+                PointF ScreenFrom = GetPointFromIndex(oEdge.p1);
+                ScreenFrom = this.W2S(ScreenFrom.X, ScreenFrom.Y);
+                PointF ScreenTo = GetPointFromIndex(oEdge.p2);
+                ScreenTo = this.W2S(ScreenTo.X, ScreenTo.Y);
+
+                // Draw handles
+                string color = "#FF0000";
+                if (MostRecentlySelectedVertex != null && oEdge.p1 == MostRecentlySelectedVertex.Index)
+                {
+                    color = "#0000FF";
+                }
+                this.DrawCircle(color, 10, ScreenFrom.X, ScreenFrom.Y);
+
+                color = "#FF0000";
+                if (MostRecentlySelectedVertex != null && oEdge.p2 == MostRecentlySelectedVertex.Index)
+                {
+                    color = "#0000FF";
+                }
+                this.DrawCircle(color, 10, ScreenTo.X, ScreenTo.Y);
+
+                PointF oCenter = EdgeCenter(oEdge);
+                oCenter = this.W2S(oCenter.X, oCenter.Y);
+
+                // Draw the handle for the edge
+                 color = "#00FF00";
+                if (bIsCurrentEdge)
+                {
+                    color = "#0000FF";
+                }
+
+                // Draw the handle for the edge
+                this.DrawRectangle(color, 10, 10, oCenter.X, oCenter.Y);
+
+                // Call draw routine to draw line
+                this.DrawLine("#dddddd", (float) 0.5, ScreenFrom, ScreenTo);
+            }
+         }
+
+
+        public PointF EdgeP1(Edge oEdge)
+        {
+            for (int i=0; i < VertexList.Count; i++)
+            {
+                Vertex v = VertexList.GetFrom(i);
+                if (v.Index == oEdge.p1)
+                {
+                    return new PointF(v.X, v.Y);
+                }
+            }
+
+            return new PointF(0, 0);
+        }
+
+        public PointF EdgeP2(Edge oEdge)
+        {
+            for (int i = 0; i < VertexList.Count; i++)
+            {
+                Vertex v = VertexList.GetFrom(i);
+                if (v.Index == oEdge.p2)
+                {
+                    return new PointF(v.X, v.Y);
+                }
+            }
+
+            return new PointF(0, 0);
+        }
+
+
+
+        /*
+         * A graph is a set of edges and vertices. An edge can share vertices with other edges
+         */
+        public List<Vertex> VertexList { get; set; }
+        public List<Edge> EdgeList { get; set; }
+
+        // While a handle is being moved this is the vertex associated with it
+        public Vertex CurrentlySelectedVertex { get; set; } = null;
+
+        // When a handle is selected we remember the most recent selection so that commands can be performed on it
+        public Vertex MostRecentlySelectedVertex { get; set; } = null;
+
+        // While an edge is being moved this is the index of that handle.
+        public Edge CurrentlySelectedEdge = null;
+
+        // When an edge is selected we remember the most recent selection so that commands can be performed on it
+        public Edge MostRecentlySelectedEdge = null;
+
+
+        public void SplitEdgesAtIntersection() {
+
+            // Set a tolerence of the thinnest edge. 
+
+            bool ThereAreSplits = true;
+
+            while (ThereAreSplits)
+            {
+                ThereAreSplits = false;
+
+                for (int i = 0; i < EdgeList.Count && ThereAreSplits == false; i++)
+                {
+                    Edge S1 = EdgeList.GetFrom(i);
+                    
+                    for (int j = i + 1; j < EdgeList.Count && ThereAreSplits == false; j++)
+                    {
+                        Edge S2 = EdgeList.GetFrom(j);
+                        PointF? p = FindInsideIntersectionPoint(S1, S2);
+
+                        if (p != null)
+                        {
+                            // Add this as a new vertex
+                            Vertex vNew = new Vertex();
+#if DOTNET
+                            vNew.X = p.Value.X;
+                            vNew.Y = p.Value.Y;
+#else
+                            vNew.X = p.X;
+                            vNew.Y = p.Y;
+#endif
+                            vNew.Index = FindNextIndex();
+                            VertexList.Add(vNew);
+                            // TBD make sure its not too close to an existing point
+
+                            // Create two new segments with the intersection as the 'from' point. 
+
+                            Edge pe1 = new Edge();
+                            pe1.Width = S1.Width;
+                            pe1.Height = S1.Height;
+                            pe1.ID = "";                // new segment, remove any id
+                            pe1.HoleGroupID = "";       // new segment don't try to bring holes over
+                            pe1.p1 = vNew.Index;
+                            pe1.p2 = S1.p2;
+                            EdgeList.Add(pe1);
+
+                            Edge pe2 = new Edge();
+                            pe2.Width = S1.Width;
+                            pe2.Height = S1.Height;
+                            pe2.ID = "";                // new segment, remove any id
+                            pe2.HoleGroupID = "";       // new segment don't try to bring holes over
+                            pe2.p1 = vNew.Index;
+                            pe2.p2 = S2.p2;
+                            EdgeList.Add(pe2);
+
+                            // Truncate the existing segments to the new point
+
+                            S1.p2 = vNew.Index;
+                            S2.p2 = vNew.Index;
+
+                            // Indicate that there are splits so that the list can be reprocessed
+
+                            ThereAreSplits = true;
+
+                        }
+
+                    }
+                }
+
+            }
+
+            // Trigger redraw of shapes
+            DrawShapes();
+        }
+
+
+
+
+        public eOperationStatus SplitMostRecentlySelectedEdge(float RelativeDistance)
+        {
+            if (EdgeList.Count == 0)
+            {
+                return eOperationStatus.NoEdgesDefined;
+            }
+
+            if (MostRecentlySelectedEdge == null)
+            {
+                return eOperationStatus.NoEdgeSelected;
+            }
+
+            Vertex v1 = FindVertexFromIndex(MostRecentlySelectedEdge.p1);
+            Vertex v2 = FindVertexFromIndex(MostRecentlySelectedEdge.p2);
+
+            SVector2 f = new SVector2(v1.X, v1.Y); 
+            SVector2 t = new SVector2(v2.X, v2.Y);
+
+            SVector2 interpolatedVector = SVector2.Interpolate(f, t, RelativeDistance);
+            /*
+             * Get the point at the at this distance mark
+             */
+            PointF InterpolatedPoint = new PointF(interpolatedVector.X, interpolatedVector.Y);
+
+            // Add the interpolated point as a new vertex
+            Vertex vInterpolated = new Vertex();
+            vInterpolated.Index = FindNextIndex();
+            vInterpolated.X = InterpolatedPoint.X;
+            vInterpolated.Y = InterpolatedPoint.Y;
+
+            VertexList.Add(vInterpolated);
+            
+            // Create a new edge with two points, the interpolated point and the current p2
+
+            Edge newEdge = new Edge();
+            newEdge.Width = MostRecentlySelectedEdge.Width;
+            newEdge.Height = MostRecentlySelectedEdge.Height;
+            newEdge.ID = "";
+            newEdge.HoleGroupID = "";
+            newEdge.p1 = vInterpolated.Index;
+            newEdge.p2 = MostRecentlySelectedEdge.p2;
+
+            EdgeList.Add(newEdge);
+
+            // update the current edge, set its 'p2' point to the interpolated point. This will trim it
+            // Also, clear out any holes, the split edge requires a reset
+
+            MostRecentlySelectedEdge.p2 = vInterpolated.Index;
+            MostRecentlySelectedEdge.HoleGroupID = "";
+
+            // trigger redraw
+            DrawShapes();
+
+            return eOperationStatus.OK;
+        }
+
+
+
+      
+
+
+        public bool TryEdgeSelect(int ScreenMouseX, int ScreenMouseY)
+        {
+            Edge oEdge = FindEdgeFromMouse(ScreenMouseX, ScreenMouseY);
+            if (oEdge != null)
+            {
+                // Select this edge, this is used for moving the edge while drawing
+                CurrentlySelectedEdge = oEdge;
+
+                // Remember this as the most recently selected edge, for purposes of commands
+                MostRecentlySelectedEdge = oEdge;
+
+                return true;
+            }
+
+            return false;
+        }
+
+
+        public bool TryHandleSelect(int ScreenMouseX, int ScreenMouseY)
+        {
+            for (int i=0; i < VertexList.Count; i++)
+            {
+                Vertex v = VertexList.GetFrom(i);
+
+                PointF ScreenCoordinates = this.W2S(v.X, v.Y);
+
+                double distance = Math.sqrt(
+                    (ScreenMouseX - ScreenCoordinates.X) * (ScreenMouseX - ScreenCoordinates.X) +
+                    (ScreenMouseY - ScreenCoordinates.Y) * (ScreenMouseY - ScreenCoordinates.Y));
+
+                if (distance < 10)
+                {
+                    // For purposes of dragging the handle we want to know the currently selected handle. However, its 
+                    // also useful to remember the most recently selected handle for purposes of operations
+
+                    CurrentlySelectedVertex = v;
+                    MostRecentlySelectedVertex = v;
+                    return true;
+                }
+            }
+
+            return false;   // no handle selected
+        }
+
+
+        /// <summary>
+        /// If there is a current handle see if we dropped it over another handle, and if so merge these points
+        /// </summary>
+        /// <param name="ScreenMouseX"></param>
+        /// <param name="ScreenMouseY"></param>
+        /// <returns></returns>
+        public eOperationStatus TryMergeVertex(int ScreenMouseX, int ScreenMouseY) 
+        {
+            if (CurrentlySelectedVertex == null) return eOperationStatus.NoVertexSelected;
+
+            // Get all handles that are close to this point. The current handle will be one of them
+            // There could conceivable be many handles if they are close. Pick the first handle that 
+            // isn't the current handle and merge into that
+
+            // get the first point that is within 10 pixels of the currently selected vertex
+            // we want to set the x,y of the current vertex to the x,y of the closest vertex
+
+            List<Vertex> Vertexlist = FindVertextListAtScreenPoint(ScreenMouseX, ScreenMouseY);
+
+            // Pick the first one that isn't the currently selected edge
+
+            Vertex MergeToVertex = null;
+            for (int i=0; i < Vertexlist.Count; i++)
+            {
+                Vertex v = Vertexlist.GetFrom(i);
+                if (v == CurrentlySelectedVertex) continue;
+
+                MergeToVertex = v;
+                break;
+
+            }
+
+            // If there were no other vertices close we're done
+            if (MergeToVertex == null) return eOperationStatus.OK;
+
+            /*
+             * Replace all instances of the currently selected vertex with the merged vertex in existing edges
+             */
+            for (int i=0; i < EdgeList.Count; i++)
+            {
+                Edge oEdge = EdgeList.GetFrom(i);
+                if (oEdge.p1 == CurrentlySelectedVertex.Index)
+                {
+                    oEdge.p1 = MergeToVertex.Index;
+                }
+
+                if (oEdge.p2 == CurrentlySelectedVertex.Index)
+                {
+                    oEdge.p2 = MergeToVertex.Index;
+                }
+            }
+
+            // delete the currently selected vertex
+
+            for (int i=0; i < VertexList.Count; i++)
+            {
+                Vertex v = VertexList.GetFrom(i);
+                if (v.Index == CurrentlySelectedVertex.Index)
+                {
+                    VertexList.RemoveAt(i);
+                    break;
+                }
+            }
+
+            // Set the most recently selected vertex to the merge vertex
+
+            MostRecentlySelectedVertex = MergeToVertex;
+
+            return eOperationStatus.OK;
+
+        }   
+
+
+
+        public eOperationStatus UnMergeMostRecentlySelectedHandle()
+        {
+            if (MostRecentlySelectedVertex == null) return eOperationStatus.NoVertexSelected;
+
+            // Delete this index. We'll replace all occurrences with new vertices
+
+            for (int i=0; i < VertexList.Count; i++)
+            {
+                Vertex v = VertexList.GetFrom(i);
+                if (v.Index == MostRecentlySelectedVertex.Index)
+                {
+                    VertexList.RemoveAt(i);
+                    break;
+                }
+            }
+            /*
+             * Now create new handles for each instance of the just deleted vertex
+             */
+            for (int i=0; i < EdgeList.Count; i++)
+            {
+                Edge oEdge = EdgeList.GetFrom(i);
+                if (oEdge.p1 == MostRecentlySelectedVertex.Index)
+                {
+                    Vertex v = NewVertex(MostRecentlySelectedVertex.X, MostRecentlySelectedVertex.Y);
+                    oEdge.p1 = v.Index;
+                }
+                if (oEdge.p2 == MostRecentlySelectedVertex.Index)
+                {
+                    Vertex v = NewVertex(MostRecentlySelectedVertex.X, MostRecentlySelectedVertex.Y);
+                    oEdge.p2 = v.Index;
+                }
+
+            }
+
+            // trigger a redraw
+            DrawShapes();
+
+            return eOperationStatus.OK;
+
+        }
+           
+
+
+        public eOperationStatus UpdateCurrentHandleToScreenPoint(int ScreenMouseX, int ScreenMouseY)
+        {
+            if (CurrentlySelectedVertex == null) return eOperationStatus.NoVertexSelected;
+
+            PointF pWorld = this.S2W(ScreenMouseX, ScreenMouseY);
+
+            float newx = pWorld.X;
+            float newy = pWorld.Y;
+
+            // Update the world points to the nearest grid
+            if ( this.GridSize > 1)
+            {
+                newx = this.RoundToGrid((int)pWorld.X);
+                newy = this.RoundToGrid((int)pWorld.Y);
+            }
+
+            CurrentlySelectedVertex.X = (float) newx;
+            CurrentlySelectedVertex.Y = (float) newy;    
+
+            return eOperationStatus.OK;
+        }
+
+
+}

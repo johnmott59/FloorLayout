@@ -1,0 +1,12 @@
+    public partial class HoleGroup
+{
+        public HoleGroup()
+        {
+            HoleGroupID = "";
+            HoleList = new Hole[0];
+        }
+        public string HoleGroupID { get; set; }
+        public Hole[] HoleList;
+
+
+}

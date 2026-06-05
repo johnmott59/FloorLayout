@@ -1,0 +1,384 @@
+public class Edit2DBase
+{
+        public eMouseDownCapture BaseMouseDown(int ScreenMouseX, int ScreenMouseY)
+        {
+            // Indicate new mouse state
+            MouseState = eMouseState.MouseDown;
+            // Call the override mouse down method
+
+            return MouseDown(ScreenMouseX, ScreenMouseY);
+        }
+
+
+        public bool BaseMouseMove(int ScreenMouseX, int ScreenMouseY)
+        {
+            // Compute the screen delta x and delta y based on last mouse position
+            int ScreenDeltaX = ScreenMouseX - LastScreenMousePosition.X;
+            int ScreenDeltaY = ScreenMouseY - LastScreenMousePosition.Y;
+
+            // Update the last mouse position
+            LastScreenMousePosition = new Point(ScreenMouseX, ScreenMouseY);
+
+            if (MouseState == eMouseState.MouseDown)
+            {
+                MouseState = eMouseState.MouseMovedWhileDown;
+            }
+
+            /*
+             * Our action takes place if the mouse is down while its being moved.
+             */
+            if (MouseState != eMouseState.MouseMovedWhileDown) return false;
+
+            if (MouseMove(MouseState, ScreenMouseX, ScreenMouseY,ScreenDeltaX,ScreenDeltaY)) return true;
+
+            // Draw set didn't change things, we can scroll
+
+            int WorldDeltaX = (int)((float)ScreenDeltaX * CurrentZoom);
+            int WorldDeltaY = (int)((float)ScreenDeltaY * CurrentZoom);
+
+            WorldPointScrollX -= WorldDeltaX;
+            WorldPointScrollY -= WorldDeltaY;
+
+            // After a scroll we need to repaint
+            DrawShapes();
+
+            return false;
+        }
+
+
+
+        public void BaseMouseUp(int ScreenMouseX, int ScreenMouseY)
+        {
+            // pass this to the draw operation object
+            MouseUp(ScreenMouseX, ScreenMouseY);
+            /*
+             * Reset mouse state and cursor
+             */
+            MouseState = eMouseState.Nothing;
+        }
+
+
+        public void Clear(string color)
+        {
+#if DOTNET
+#else
+            this.context.fillStyle = color;
+            this.context.fillRect(0, 0,
+                this.context.canvas.clientWidth,
+                this.context.canvas.clientHeight);
+#endif
+        }
+
+
+        public Edit2DBase()
+        {
+
+            LastScreenMousePosition = new Point(0, 0);
+            MouseState = eMouseState.Nothing;
+
+            WorldPointScrollX = 0;
+            WorldPointScrollY = 0;
+
+            CurrentZoom = 1;
+
+            GridSize = 1;
+        }
+
+
+        public void DrawAxis()
+        {
+
+            PointF XaxisFrom = this.W2S(-100, 0);
+            PointF XaxisTo = this.W2S(100, 0);
+
+            DrawLine("rgba(150,150,150,.5)", (float).5, XaxisFrom, XaxisTo);
+
+            PointF YaxisFrom = this.W2S(0, -100);
+            PointF YaxisTo = this.W2S(0, 100);
+
+            DrawLine("rgba(150,150,150,.5)", (float).5, YaxisFrom, YaxisTo);
+
+        }
+      
+
+        
+
+
+        public void DrawCircle(string color, float Radius, float CenterX, float CenterY)
+        {
+#if DOTNET
+#else
+            this.context.save();
+
+            this.context.lineWidth = 1;
+            this.context.beginPath();
+
+            this.context.strokeStyle = color;
+
+            this.context.arc(CenterX, CenterY, Radius, 0, 2 * Math.PI);
+
+            this.context.closePath();
+            this.context.stroke();
+
+            this.context.restore();
+#endif
+        }
+
+
+
+        // There is a W3C ellipse function for the context but it doesn't compile, not sure of browser support
+        public void DrawEllipse(string color, float Width, float Height, float CenterX, float CenterY)
+        {
+#if DOTNET
+#else
+        this.context.save();
+        this.context.beginPath();
+       
+        this.context.translate(CenterX, CenterY);
+        var scalex = 1;
+        var scaley = 1;
+        if (Width > Height) {
+            scalex = Width / Height;
+        }
+        if (Height > Width) {
+            scaley = Height / Width;
+        }
+        this.context.scale(scalex, scaley);
+       
+        this.context.arc(0, 0, Math.min(Width, Height), 0, 2 * Math.PI, false);
+            
+        // we call restore before calling stroke so that the line drawing of the ellipse isn't scaled, only the dimensions
+        this.context.restore();
+        this.context.lineWidth = 1;
+        this.context.strokeStyle = color;
+        this.context.stroke();
+#endif
+        }
+
+
+
+        protected void DrawGrid()
+        {
+            if (this.GridSize == 1) return;
+
+            int clientWidth = PictureBoxWidth;
+            int clientHeight = PictureBoxHeight;
+            int GridSize =this.GridSize;
+
+            PointF ScreenCenter = new PointF(clientWidth / 2, clientHeight / 2);
+            PointF WorldCenter = this.S2W(ScreenCenter.X, ScreenCenter.Y);
+
+            // Adjust the world coordinates to the grid size
+            WorldCenter.X = RoundToGrid((int)WorldCenter.X);
+            WorldCenter.Y = RoundToGrid((int)WorldCenter.Y);
+
+            int HorizontalLines = clientHeight / this.GridSize / 2;
+            int HorizontalWidth = clientWidth / 2;
+
+            for (int i = -HorizontalLines; i < HorizontalLines; i++)
+            {
+                float Y = i * GridSize + WorldCenter.Y;
+                PointF From = new PointF(-HorizontalWidth + WorldCenter.X, Y);
+                PointF To = new PointF(HorizontalWidth + WorldCenter.X, Y);
+                DrawLine("rgba(30,30,30,.5)",(float).25, this.W2S(From.X, From.Y), this.W2S(To.X, To.Y));
+            }
+
+            int VerticalLines = clientWidth / GridSize / 2;
+            int VerticalWidth = clientHeight / 2;
+
+            for (int i = -VerticalLines; i < VerticalLines; i++)
+            {
+                float X = i * GridSize + WorldCenter.X;
+                PointF From = new PointF(X, -VerticalWidth + WorldCenter.Y);
+                PointF To = new PointF(X, VerticalWidth + WorldCenter.Y);
+                DrawLine("rgba(30,30,30,.5)", (float).25, this.W2S(From.X, From.Y), this.W2S(To.X, To.Y));
+            }
+        }
+
+
+
+        public virtual void DrawLine(string color, float lineWidth, PointF ScreenFrom, PointF ScreenTo) {
+#if DOTNET
+#else
+            this.context.save();
+
+            this.context.lineWidth = lineWidth;
+            this.context.beginPath();
+
+            this.context.strokeStyle = color;
+
+            this.context.moveTo(ScreenFrom.X, ScreenFrom.Y);
+            this.context.lineTo(ScreenTo.X, ScreenTo.Y);
+
+            this.context.closePath();
+            this.context.stroke();
+
+            this.context.restore();
+#endif
+        }
+
+
+
+        public void DrawRectangle(string color, float width,float height, float CenterX, float CenterY)
+        {
+#if DOTNET
+#else
+            this.context.save();
+
+            this.context.lineWidth = 1;
+            this.context.beginPath();
+
+            this.context.strokeStyle = color;
+
+            this.context.strokeRect(CenterX - width/2, CenterY - height/2, width, height);
+
+            this.context.closePath();
+            this.context.stroke();
+
+            this.context.restore();
+#endif
+        }
+
+
+
+        /// <summary>
+        /// Get the upper left world coordinate of the current picture box
+        /// </summary>
+        /// <returns></returns>
+        protected PointF GetUpperLeftWorld()
+        {
+            // based on the zoom get the world coordinates coordinates of the upper left corner of the screen
+
+            float divisor = 1;
+
+            if (CurrentZoom == .125) divisor = 16;
+            if (CurrentZoom == .25) divisor = 8;
+            if (CurrentZoom == .5) divisor = 4;
+            if (CurrentZoom == 1) divisor = 2;
+            if (CurrentZoom == 2) divisor = 1;
+            if (CurrentZoom == 4) divisor = (float).5;
+            if (CurrentZoom == 8) divisor = (float).25;
+
+            return new PointF(WorldPointScrollX - PictureBoxWidth / divisor, WorldPointScrollY - PictureBoxHeight / divisor);
+        }
+
+
+
+
+
+#if DOTNET
+#else
+        public CanvasRenderingContext2D context;
+#endif
+
+
+        public Point LastScreenMousePosition { get; set; }
+        public eMouseState MouseState = eMouseState.Nothing;
+
+        // This is the bias for display
+        public int WorldPointScrollX { get; set; } = 0;
+        public int WorldPointScrollY { get; set; } = 0;
+
+        public int PictureBoxWidth { get; set; }
+        public int PictureBoxHeight { get; set; }
+
+        public float CurrentZoom { get; set; } = 1;
+
+
+
+
+
+        // The drawing area may be set up to snap to a grid size.
+        public int GridSize { get; set; } = 10;
+
+        public int RoundToGrid(int value)
+        {
+            int GridSizeHalf = (int)Math.floor((double)GridSize / (double)2);
+
+            int ModX = value % GridSize;
+            int DivX = (int)Math.floor((double)value / (double)GridSize);
+            int SnapValue = DivX * GridSize;
+            if (ModX > GridSizeHalf) SnapValue += GridSize;
+
+            return SnapValue;
+        }
+
+
+
+
+
+        public PointF S2W(float ScreenX, float ScreenY)
+        {
+            PointF WorldUpperLeft = GetUpperLeftWorld();
+
+            // bias the screen points according to the zoom and add to the upper left corner
+
+            return new PointF(WorldUpperLeft.X + ScreenX * CurrentZoom, WorldUpperLeft.Y + ScreenY * CurrentZoom);
+
+        }
+
+     
+        
+
+
+        /*
+         * When the zoom level changes we have to adjust the scroll to compensate.
+         * to align the centers of the screen shift the world
+         */
+        public void SetZoom(float NewZoom)
+        {
+            CurrentZoom = NewZoom;
+        }
+
+
+
+      
+
+        
+
+
+        /*
+         * Starting routine to draw shapes. This will be overridden by view objects to perform drawing,
+         * and those classes will call methods in this class to do the drawing
+         */
+        public virtual void DrawShapes()
+        {
+
+        }
+
+
+
+  
+        /*
+         * Sub classes will override these methods to implement mouse operations on their canvas
+         */
+        public virtual eMouseDownCapture MouseDown(int ScreenMouseX, int ScreenMouseY)
+        {
+            return eMouseDownCapture.Nothing;
+        }
+
+        public virtual bool MouseMove(eMouseState MouseState, int ScreenMouseX, int ScreenMouseY, int ScreenDeltaX, int ScreenDeltaY)
+        {
+            return false;
+        }
+
+        public virtual void MouseUp(int ScreenMouseX, int ScreenMouseY)
+        {
+
+        }
+
+
+
+
+        public PointF W2S(float WorldX, float WorldY)
+        {
+            PointF WorldUpperLeft = GetUpperLeftWorld();
+
+            return new PointF((WorldX - WorldUpperLeft.X) / CurrentZoom, (WorldY - WorldUpperLeft.Y) / CurrentZoom);
+
+        }
+
+
+
+
+}

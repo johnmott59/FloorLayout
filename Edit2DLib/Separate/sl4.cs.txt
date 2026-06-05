@@ -1,0 +1,18 @@
+    public partial class Hole
+{
+        // The starting offset of the hole
+        public float OffsetX { get; set; }
+        public float OffsetY { get; set; }
+
+        // outline of the hole
+        public string HoleType { get; set; }
+        public int HoleTypeIndex { get; set; }
+
+        public Hole()
+        {
+
+        }
+
+
+
+}

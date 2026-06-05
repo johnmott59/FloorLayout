@@ -1,0 +1,13 @@
+        public partial class Edge
+{
+            public string ID { get; set; } = "";
+            public string HoleGroupID { get; set; } = "";
+            public int p1 { get; set; }
+            public int p2 { get; set; }
+            public int Width { get; set; } = 5;
+            public int Height { get; set; } = 20;
+
+
+    
+
+}

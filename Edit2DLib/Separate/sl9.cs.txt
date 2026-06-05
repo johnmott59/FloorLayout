@@ -1,0 +1,13 @@
+    public partial class Vertex
+{
+        public Vertex()
+        {
+
+        }
+
+        public int Index { get; set; }
+        public float X { get; set; }
+        public float Y { get; set; }
+
+
+}

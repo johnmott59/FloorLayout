@@ -1,0 +1,1065 @@
+public class Edit2DHoleGroup :Edit2DBase
+{
+        public void AddEllipse(int ScreenOffsetX, int ScreenOffsetY, int Width, int Height)
+        {
+            PointF WorldOffset = this.S2W(ScreenOffsetX, ScreenOffsetY);
+
+            Hole oHole = new Hole();
+            oHole.HoleType = "ell";
+            oHole.OffsetX = WorldOffset.X;
+            oHole.OffsetY = WorldOffset.Y;
+            /*
+             * Save this as the current and most recently selected
+             * The most recently selected is used for commands after the mouse is up
+             */
+            CurrentlySelectedHole = oHole;
+            MostRecentlySelectedHole = oHole;
+            /*
+             * The index is the at the end of the current list. This means we will have to manage the index values
+             * when they are deleted
+             */          
+            oHole.HoleTypeIndex = BoundaryEllipseList.Count;
+            AddHoleToHoleGroup(MostRecentlySelectedHoleGroup, oHole);
+            /*
+             * Now create and add the ellipse
+             */
+            BoundaryEllipse ell = new BoundaryEllipse();
+            ell.Width = Width;
+            ell.Height = Height;
+
+            BoundaryEllipseList.Add(ell);
+
+            // trigger redraw
+
+            DrawShapes();
+        }
+
+        public void AddHoleToHoleList(HoleGroup hg, Hole oNewHole)
+        {
+
+        }
+
+
+
+
+        public void AddHoleGroup(string HoleGroupID)
+        {
+            HoleGroup hg = new HoleGroup();
+            hg.HoleGroupID = HoleGroupID;
+            hg.HoleList = new Hole[0];
+
+            HoleGroupList.Add(hg);
+        }
+
+
+        public void AddHoleToHoleGroup(HoleGroup hg, Hole oNewHole)
+        {
+
+#if DOTNET
+            List<Hole> tmp = new List<Hole>(hg.HoleList);
+            tmp.Add(oNewHole);
+            hg.HoleList = tmp.ToArray();
+#else
+            hg.HoleList.push(oNewHole);
+#endif
+        }
+
+
+
+        // Add a polygon. This is managed with a simplelayout object 
+        public void AddPolygon(int ScreenOffsetX, int ScreenOffsetY, int InitialSides, int Radius)
+        {
+            BoundaryPolygon oPolygon = new BoundaryPolygon();
+
+            oPolygon.PointList = new List<Point3D>();
+
+            float Angle = 0;
+            float AngleDelta = (float) Math.PI * 2 / InitialSides;
+            for (int i=0; i < InitialSides; i++)
+            {
+#if DOTNET
+                float x = (float)Math.Cos(Angle) * Radius;
+                float y = (float)Math.Sin(Angle) * Radius;
+#else
+                float x = (float) Math.cos(Angle) * Radius;
+                float y = (float) Math.sin(Angle) * Radius;
+#endif
+                PointF vp = this.S2W(ScreenOffsetX + x, ScreenOffsetY + y);
+                Point3D p = new Point3D();
+                p.X = vp.X;
+                p.Y = vp.Y;
+
+                oPolygon.PointList.Add(p);
+
+                Angle += AngleDelta;
+            }
+
+            /*
+             * Create a hole and boundary polygon object
+             */
+            Hole oHole = new Hole();
+            oHole.HoleType = "poly";
+            oHole.HoleTypeIndex = BoundaryPolygonList.Count;
+            oHole.OffsetX = ScreenOffsetX;
+            oHole.OffsetY = ScreenOffsetY;
+
+            AddHoleToHoleGroup(MostRecentlySelectedHoleGroup, oHole);
+
+            BoundaryPolygonList.Add(oPolygon);
+
+            // trigger redraw
+
+            DrawShapes();
+
+        }
+
+
+        public void AddRectangle(int ScreenOffsetX, int ScreenOffsetY, int Width, int Height)
+        {
+            PointF WorldOffset = this.S2W(ScreenOffsetX, ScreenOffsetY);
+
+            Hole oHole = new Hole();
+            oHole.HoleType = "rect";
+            oHole.OffsetX = WorldOffset.X;
+            oHole.OffsetY = WorldOffset.Y;
+            /*
+             * Save this as the current and most recently selected
+             */
+            CurrentlySelectedHole = oHole;
+            MostRecentlySelectedHole = oHole;
+            /*
+             * The index is the at the end of the current list. This means we will have to manage the index values
+             * when they are deleted
+             */          
+            oHole.HoleTypeIndex = BoundaryRectangleList.Count;
+
+            AddHoleToHoleGroup(MostRecentlySelectedHoleGroup, oHole);
+
+            /*
+             * Now create and add the rectangle
+             */
+            BoundaryRectangle rect = new BoundaryRectangle();
+            rect.Width = Width;
+            rect.Height = Height;
+
+            BoundaryRectangleList.Add(rect);
+
+            // trigger draw shapes
+            DrawShapes();
+        }
+
+
+
+
+        public Edit2DHoleGroup()
+        {
+            //  This is a trick to get code to show up when pasting into typescript.
+            // Because this method is extracted from the class by a program that skips the top of the file
+            // the #define won't be picked up. At the same time when the typescript paste occurs the
+            // compiler will evaluate the #define and generate the 'else', which will be appropriate for javascript.
+#if DOTNET
+#else
+            super();
+#endif
+            // This will manage one set of holes; one holegroup
+
+            MostRecentlySelectedHoleGroup = new HoleGroup();
+            MostRecentlySelectedHoleGroup.HoleGroupID = "";
+
+            // These are the individual drawing patterns
+
+            BoundaryRectangleList = new List<BoundaryRectangle>();
+            BoundaryEllipseList = new List<BoundaryEllipse>();
+            BoundaryPolygonList = new List<BoundaryPolygon>();
+
+            // Initialize the list of hole groups
+            HoleGroupList = new List<HoleGroup>();
+
+        }
+
+
+        public void DeleteCurrentHole()
+        {
+            if (MostRecentlySelectedHole == null) return;
+
+            int IndexToDelete = -1;
+
+            switch (MostRecentlySelectedHole.HoleType)
+            {
+                case "ell":
+                    // Delete this index
+                    // Find all references to hole values greater than this one and reduce them by one so the indices are correct
+                    IndexToDelete = -1;
+
+                    for (int i = 0; i < GetHoleListLength(MostRecentlySelectedHoleGroup.HoleList); i++)
+                    {
+                        Hole oHole = MostRecentlySelectedHoleGroup.HoleList[i];
+
+                        if (MostRecentlySelectedHole == oHole) IndexToDelete = i;
+
+                        if (oHole.HoleType == "ell" && oHole.HoleTypeIndex > MostRecentlySelectedHole.HoleTypeIndex)
+                        {
+                            oHole.HoleTypeIndex--;
+                        }
+                    }
+
+                    // Delete this hole
+                    RemoveHoleFromHoleGroup(MostRecentlySelectedHoleGroup, IndexToDelete);
+
+                    // Delete this shape
+                    BoundaryEllipseList.RemoveAt(MostRecentlySelectedHole.HoleTypeIndex);
+                    break;
+                case "rect":
+                    // Delete this index
+                    // Find all references to hole values greater than this one and reduce them by one so the indices are correct
+                    IndexToDelete = -1;
+                    for (int i=0; i < GetHoleListLength(MostRecentlySelectedHoleGroup.HoleList); i++)
+                    {
+                        Hole oHole = MostRecentlySelectedHoleGroup.HoleList[i];
+
+                        if (MostRecentlySelectedHole == oHole) IndexToDelete = i;
+
+                        if (oHole.HoleType == "rect" && oHole.HoleTypeIndex > MostRecentlySelectedHole.HoleTypeIndex)
+                        {
+                            oHole.HoleTypeIndex--;
+                        }
+                    }
+
+                    // Delete this hole
+                    RemoveHoleFromHoleGroup(MostRecentlySelectedHoleGroup, IndexToDelete);
+
+                    // Delete this shape
+                    BoundaryRectangleList.RemoveAt(MostRecentlySelectedHole.HoleTypeIndex);
+                    break;
+                case "poly":
+
+                    // Find all references to hole values greater than this one and reduce them by one so the indices are correct
+                    IndexToDelete = -1;
+
+                    for (int i = 0; i < GetHoleListLength(MostRecentlySelectedHoleGroup.HoleList); i++)
+                    {
+                        Hole oHole = MostRecentlySelectedHoleGroup.HoleList[i];
+
+                        if (MostRecentlySelectedHole == oHole) IndexToDelete = i;
+
+                        if (oHole.HoleType == "poly" && oHole.HoleTypeIndex > MostRecentlySelectedHole.HoleTypeIndex)
+                        {
+                            oHole.HoleTypeIndex--;
+                        }
+                    }
+
+                    // Delete this hole
+                    RemoveHoleFromHoleGroup(MostRecentlySelectedHoleGroup, IndexToDelete);
+
+                    // Delete this shape
+                    BoundaryPolygonList.RemoveAt(MostRecentlySelectedHole.HoleTypeIndex);
+                    break;
+            }
+
+            // trigger a repaint
+            DrawShapes();
+        }
+
+
+
+
+        void DeleteHoleGroup(string HoleGroupID)
+        {
+            for (int i=0; i < HoleGroupList.Count; i++)
+            {
+                HoleGroup hg = HoleGroupList.GetFrom(i);
+                if (hg.HoleGroupID == HoleGroupID)
+                {
+                    HoleGroupList.RemoveAt(i);
+                    return;
+                }
+            }
+        }
+
+
+        public PointF EdgeCenter(PointF From, PointF To)
+        {
+            float dx = From.X - To.X;
+            float dy = From.Y - To.Y;
+            /*
+             * The connection point for this edge is the normal
+             */
+            return new PointF((dx) / 2 + To.X, (dy) / 2 + To.Y);
+        }
+
+
+        // We have this in a separate routine to make it easier to separate out the JS/C# functionality
+        public int GetHoleListLength(Hole[] HoleList)
+        {
+#if DOTNET
+            return HoleList.Length;
+#else
+            return HoleList.length;
+#endif
+
+        }
+
+
+
+
+        public void LoadFromJSON(
+            HoleGroup[] HoleGroupArray,
+            BoundaryRectangle[] RectangleArray,
+            BoundaryEllipse[] EllipseArray, 
+            BoundaryPolygon[] PolygonArray)
+        {
+
+            HoleGroupList = new List<HoleGroup>();
+            for (int i=0; i < HoleGroupArray.Length; i++)
+            {
+                HoleGroup hg = new HoleGroup();
+
+                hg.HoleGroupID = HoleGroupArray[i].HoleGroupID;
+#if DOTNET
+                hg.HoleList = new Hole[0];
+#else
+                hg.HoleList = [];
+#endif
+                /*
+                 * When the objects get here in JS the holelist is no longer a list type, its an array type because
+                 * of serialization. 
+                 */
+#if DOTNET
+                for (int j = 0; j < HoleGroupArray[i].HoleList.Length; j++)
+#else
+                for (int j=0; j < HoleGroupArray[i].HoleList.length;j++)
+#endif
+
+                {
+                    Hole oHoleToAdd = HoleGroupArray[i].HoleList[j];
+#if DOTNET
+                    List<Hole> tmp = new List<Hole>(hg.HoleList);
+                    tmp.Add(oHoleToAdd);
+                    hg.HoleList = tmp.ToArray();
+
+#else
+                    hg.HoleList.push(oHoleToAdd);
+#endif
+
+                }
+
+                HoleGroupList.Add(hg);
+            }
+
+            BoundaryRectangleList = new List<BoundaryRectangle>();
+            for (int i=0; i < RectangleArray.Length; i++)
+            {
+                BoundaryRectangleList.Add(RectangleArray[i]);
+            }
+
+            BoundaryEllipseList = new List<BoundaryEllipse>();
+            for (int i = 0; i < EllipseArray.Length; i++)
+            {
+                BoundaryEllipseList.Add(EllipseArray[i]);
+            }
+
+            BoundaryPolygonList = new List<BoundaryPolygon>();
+            for (int i = 0; i < PolygonArray.Length; i++)
+            {
+                BoundaryPolygonList.Add(PolygonArray[i]);
+            }
+        }
+
+
+
+
+        // ---------------------------------------------------
+        public override void DrawShapes()
+        {
+            this.Clear("#FFFFFF");
+            bool bIsCurrentHole = false;
+
+            DrawGrid();
+
+            DrawAxis();
+
+            if (this.MostRecentlySelectedHoleGroup == null) return;
+
+#if DOTNET
+            int len = MostRecentlySelectedHoleGroup.HoleList.Length;
+#else
+            int len = MostRecentlySelectedHoleGroup.HoleList.length;
+#endif
+
+            for (int i=0; i < len; i++)
+            {
+                Hole oHole = MostRecentlySelectedHoleGroup.HoleList[i];
+                PointF Screen = this.W2S(oHole.OffsetX, oHole.OffsetY);
+
+                bIsCurrentHole = oHole == MostRecentlySelectedHole;
+
+                switch (oHole.HoleType)
+                {
+                    case "rect":
+
+                        DrawShapes_Rectangle(oHole, bIsCurrentHole);
+                        break;
+
+                    case "poly":
+
+                        DrawShapes_Polygon(oHole, bIsCurrentHole);
+                        break;
+
+                    case "ell":
+
+                        DrawShapes_Ellipse(oHole, bIsCurrentHole);
+                        break;
+                }
+            }
+        }
+   
+
+  
+
+
+
+
+
+  
+        //-------------------------------------------------------
+        private void DrawShapes_Ellipse(Hole oHole, bool IsCurrentHole)
+        {
+            BoundaryEllipse oEllipse = BoundaryEllipseList.GetFrom(oHole.HoleTypeIndex);
+
+            PointF Screen = this.W2S(oHole.OffsetX, oHole.OffsetY);
+
+            string color = IsCurrentHole ? "#0000FF" : "#ff0000";
+            // Draw the move handle
+            this.DrawCircle(color, 10, Screen.X, Screen.Y);
+
+            // draw the actual rectangle
+            this.DrawEllipse("#0000FF", oEllipse.Width, oEllipse.Height, Screen.X, Screen.Y);
+
+            // draw the resize handle
+            this.DrawRectangle("#00FF00", 10, 10, Screen.X + oEllipse.Width / 2, Screen.Y + oEllipse.Height / 2);
+        }
+
+
+
+
+
+        //------------------------------------------------------
+        private void DrawShapes_Polygon(Hole oHole, bool IsCurrentHole)
+        {
+            BoundaryPolygon bp = BoundaryPolygonList.GetFrom(oHole.HoleTypeIndex);
+
+            for (int i = 0; i < bp.PointList.Count; i++)
+            {
+                int FromIndex = i;
+                int ToIndex = i + 1;
+                if (ToIndex == bp.PointList.Count) ToIndex = 0; // Wrap at end
+
+                Point3D FromPoint = bp.PointList.GetFrom(FromIndex);
+                Point3D ToPoint = bp.PointList.GetFrom(ToIndex);
+
+                PointF ScreenFrom = this.W2S(FromPoint.X, FromPoint.Y);
+                PointF ScreenTo = this.W2S(ToPoint.X, ToPoint.Y);
+
+                // Draw handles
+                string color = "#FF0000";
+                if (IsCurrentHole && i == MostRecentlySelectedPolygonVertexIndex)
+                {
+                    color = "#0000FF";
+                }
+                this.DrawCircle(color, 10, ScreenFrom.X, ScreenFrom.Y);
+
+                PointF oCenter = EdgeCenter(ScreenFrom, ScreenTo);
+                // Draw the handle for the edge
+                color = "#00FF00";
+                if (IsCurrentHole && i == MostRecentlySelectedPolygonEdgeIndex)
+                {
+                    color = "#0000FF";
+                }
+                this.DrawRectangle(color, 10, 10, oCenter.X, oCenter.Y);
+
+                // Draw Line
+                this.DrawLine("#0000FF", (float)0.5, ScreenFrom, ScreenTo);
+
+                // Draw the move handle
+                PointF oMove = PolygonCenter(bp);
+                oMove = this.W2S(oMove.X, oMove.Y);
+                color = IsCurrentHole ? "#0000FF" : "#ff0000";
+
+                // Draw the move handle
+                this.DrawCircle(color, 10, oMove.X, oMove.Y);
+            }
+        }
+
+
+
+
+
+
+  
+        //-------------------------------------------------------
+        private void DrawShapes_Rectangle(Hole oHole, bool IsCurrentHole)
+        {
+            BoundaryRectangle oRect = BoundaryRectangleList.GetFrom(oHole.HoleTypeIndex);
+
+            PointF Screen = this.W2S(oHole.OffsetX, oHole.OffsetY);
+
+            string color = IsCurrentHole ? "#0000FF" : "#ff0000";
+            // Draw the move handle
+            this.DrawCircle(color, 10, Screen.X, Screen.Y);
+
+            // draw the actual rectangle
+            this.DrawRectangle("#0000FF", oRect.Width, oRect.Height, Screen.X, Screen.Y);
+
+            // draw the resize handle
+            this.DrawRectangle("#00FF00", 10, 10, Screen.X + oRect.Width / 2, Screen.Y + oRect.Height / 2);
+        }
+
+
+
+
+        /*
+         * Sub classes will override these methods to implement mouse operations on their canvas
+         */
+       override  public eMouseDownCapture MouseDown(int ScreenMouseX, int ScreenMouseY)
+        {
+            if (TryHoleSelect(ScreenMouseX, ScreenMouseY)) return eMouseDownCapture.VertexHandle;
+
+            return eMouseDownCapture.Nothing;
+        }
+
+        override public bool MouseMove(eMouseState MouseState, int ScreenMouseX, int ScreenMouseY, int ScreenDeltaX, int ScreenDeltaY)
+        {
+            if (CurrentlySelectedHole != null)
+            {
+                UpdateCurrentHole(ScreenMouseX, ScreenMouseY, ScreenDeltaX, ScreenDeltaY);
+                return true;
+            }
+            return false;
+        }
+
+        override public void MouseUp(int ScreenMouseX, int ScreenMouseY)
+        {
+            /*
+             * Reset the currently selected items. Most recently selected remain active for any commands
+             */
+            CurrentlySelectedHole = null;
+            CurrentlySelectedPolygonEdgeIndex = -1;
+            CurrentlySelectedPolygonVertexIndex = -1;
+        }
+
+
+        public Hole CurrentlySelectedHole { get; set; }
+        public Hole MostRecentlySelectedHole { get; set; }
+
+        public eHandleType CurrentlySelectedHandleType { get; set; }
+
+        public int CurrentlySelectedPolygonVertexIndex { get; set; }  // if this is a polygon, currently selected index
+        public int MostRecentlySelectedPolygonVertexIndex { get; set; }
+
+        public int CurrentlySelectedPolygonEdgeIndex { get; set; }  // if this is a polygon, currently selected edge
+        public int MostRecentlySelectedPolygonEdgeIndex { get; set; }
+
+        // This will manage a set of hole groups, of which there will be one that is active. All of the rectanges,
+        // ellipses and polygons are in a list that the hole groups manage
+        public List<HoleGroup> HoleGroupList { get; set; }
+
+        public HoleGroup MostRecentlySelectedHoleGroup { get; set; }
+
+        // The hole definitions are maintained in lists referenced by index. We do this this way so that this entire
+        // structure can be serialized
+
+        public List<BoundaryRectangle> BoundaryRectangleList { get; set; }
+        public List<BoundaryEllipse> BoundaryEllipseList { get; set; }
+        public List<BoundaryPolygon> BoundaryPolygonList { get; set; }
+
+
+
+       
+        public void RemoveCurrentPolygonVertex()
+        {
+            if (MostRecentlySelectedHole == null) return;
+
+            if (MostRecentlySelectedHole.HoleType != "poly") return;
+
+            if (MostRecentlySelectedPolygonVertexIndex == -1) return;
+
+            BoundaryPolygon oPolygon = BoundaryPolygonList.GetFrom(MostRecentlySelectedHole.HoleTypeIndex);
+
+            // Don't reduce to less than 3 points
+            if (oPolygon.PointList.Count == 3) return;
+                      
+            /*
+             * Remove this point and clear the most recently selected edge
+             */
+
+            oPolygon.PointList.RemoveAt(MostRecentlySelectedPolygonVertexIndex);
+
+            MostRecentlySelectedPolygonVertexIndex = -1;
+
+            // trigger a redraw
+
+            DrawShapes();
+
+          }
+
+
+
+        public void RemoveHoleFromHoleGroup(HoleGroup hg, int index)
+        {
+
+#if DOTNET
+            List<Hole> tmp = new List<Hole>(hg.HoleList);
+            tmp.RemoveAt(index);
+            hg.HoleList = tmp.ToArray();
+#else
+            hg.HoleList.slice(index);
+#endif
+        }
+
+
+
+        public void SelectHoleGroup(string name)
+        {
+            for (int i=0; i < HoleGroupList.Count; i++)
+            {
+                HoleGroup hg = HoleGroupList.GetFrom(i);
+                if (hg.HoleGroupID == name)
+                {
+                    MostRecentlySelectedHoleGroup = hg;
+                    return;
+                }
+            }
+        }
+
+
+
+        // If the cur
+        public void SplitCurrentPolygonEdge()
+        {
+            if (MostRecentlySelectedHole == null) return;
+
+            if (MostRecentlySelectedHole.HoleType != "poly") return;
+
+            if (MostRecentlySelectedPolygonEdgeIndex == -1) return;
+
+            BoundaryPolygon oPolygon = BoundaryPolygonList.GetFrom(MostRecentlySelectedHole.HoleTypeIndex);
+            /*
+             * Locate this edge and create a new point in between the surrounding points
+             */
+            int FromIndex = MostRecentlySelectedPolygonEdgeIndex;
+            int ToIndex = FromIndex + 1;
+
+            if (ToIndex == oPolygon.PointList.Count) ToIndex = 0;
+
+            Point3D FromPoint = oPolygon.PointList.GetFrom(FromIndex);
+            Point3D ToPoint = oPolygon.PointList.GetFrom(ToIndex);
+
+            PointF pF = new PointF(FromPoint.X, FromPoint.Y);
+            PointF pT = new PointF(ToPoint.X, ToPoint.Y);
+
+            PointF oCenter = EdgeCenter(pF, pT);
+
+            Point3D pNew = new Point3D();
+            pNew.X = oCenter.X;
+            pNew.Y = oCenter.Y;
+
+            oPolygon.PointList.Insert(FromIndex+1, pNew);
+
+            // trigger repaint
+            DrawShapes();
+        }
+
+
+
+
+
+
+
+        /// <summary>
+        /// Find the edge that's closest to the mouse X,Y
+        /// </summary>
+        /// <param name="ScreenMouseX"></param>
+        /// <param name="ScreenMouseY"></param>
+        /// <returns></returns>
+        /// 
+        protected bool TryHoleSelect(int ScreenMouseX, int ScreenMouseY)
+        {
+            for (int i=0; i < GetHoleListLength(MostRecentlySelectedHoleGroup.HoleList); i++)
+            {
+                Hole oHole = MostRecentlySelectedHoleGroup.HoleList[i];
+                PointF MoveHandle = new PointF(0, 0);
+                PointF ResizeHandle = new PointF(0, 0);
+
+                switch (oHole.HoleType)
+                {
+                    case "rect":
+                        if (TrySelectRectangle(oHole, ScreenMouseX, ScreenMouseY)) return true;
+                        break;
+                    case "poly":
+                        if (TrySelectPolygon(oHole, ScreenMouseX, ScreenMouseY)) return true;
+                        break;
+                    case "ell":
+                        if (TrySelectEllipse(oHole, ScreenMouseX, ScreenMouseY)) return true;
+                        break;
+                }
+            }
+
+            return false;
+        }
+ 
+
+        // See if there is a hit on the target point
+        private bool IsHitOnTarget(int ScreenMouseX, int ScreenMouseY, PointF Target)
+        {
+            double distance = Math.sqrt((ScreenMouseX - Target.X) * (ScreenMouseX - Target.X) +
+                                                      (ScreenMouseY - Target.Y) * (ScreenMouseY - Target.Y));
+
+            return distance < 10;
+        }
+
+
+        //----------------------------------------------------------------------------
+        private bool TrySelectEllipse(Hole oHole,int ScreenMouseX, int ScreenMouseY)
+        {
+            PointF MoveHandle = new PointF(0, 0);
+            PointF ResizeHandle = new PointF(0, 0);
+
+            BoundaryEllipse oEllipse = BoundaryEllipseList.GetFrom(oHole.HoleTypeIndex);
+
+            // The move handle  is the center
+            MoveHandle = this.W2S(oHole.OffsetX, oHole.OffsetY);
+            if (IsHitOnTarget(ScreenMouseX, ScreenMouseY, MoveHandle))
+            {
+                CurrentlySelectedHole = oHole;
+                MostRecentlySelectedHole = oHole;
+                CurrentlySelectedHandleType = eHandleType.MoveHandle;
+                return true;
+            }
+
+            // The resize handle is the lower right corner
+            ResizeHandle = this.W2S(oHole.OffsetX + oEllipse.Width / 2, oHole.OffsetY + oEllipse.Height / 2);
+            if (IsHitOnTarget(ScreenMouseX, ScreenMouseY, ResizeHandle))
+            {
+                CurrentlySelectedHole = oHole;
+                MostRecentlySelectedHole = oHole;
+                CurrentlySelectedHandleType = eHandleType.ResizeHandle;
+                return true;
+            }
+
+            return false;
+        }
+
+
+ 
+
+
+
+        //--------------------------------------------------------------------------
+        /*
+         * A Polygon can be selected in any of these ways:
+         * 1. A vertex can be selected, which makes it the active vertex
+         * 2. An edge can be selected, which makes it the active edge
+         * 3. The move handle can be selected. The move handle is generated as the average of the points of the polygon
+         */
+        private bool TrySelectPolygon(Hole oHole, int ScreenMouseX, int ScreenMouseY)
+        {
+            PointF MoveHandle = new PointF(0, 0);
+
+            BoundaryPolygon oPolygon = BoundaryPolygonList.GetFrom(oHole.HoleTypeIndex);
+            /*
+             * See if this is one of the vertices
+             */
+            for (int i=0; i < oPolygon.PointList.Count; i++)
+            {
+                Point3D p = oPolygon.PointList.GetFrom(i);
+                PointF Target = this.W2S(p.X, p.Y);
+
+                if (IsHitOnTarget(ScreenMouseX, ScreenMouseY, Target))
+                {
+                    CurrentlySelectedHole = oHole;
+                    // Most recently selected is used for commands that happen after the mouse is up
+                    MostRecentlySelectedHole = oHole;
+                    CurrentlySelectedHandleType = eHandleType.VertexHandle;
+
+                    CurrentlySelectedPolygonVertexIndex = i;
+                    // The most recently used is for commands that happen after the mouse is up
+                    MostRecentlySelectedPolygonVertexIndex = i;
+
+                    return true;
+                }
+            }
+            /*
+             * See if this is one of the edges
+             */
+            for (int i = 0; i < oPolygon.PointList.Count; i++)
+            {
+                int FromIndex = i;
+                int ToIndex = i + 1;
+                if (ToIndex == oPolygon.PointList.Count) ToIndex = 0;
+
+                Point3D FromPoint = oPolygon.PointList.GetFrom(FromIndex);
+                PointF pFrom = this.W2S(FromPoint.X, FromPoint.Y);
+
+                Point3D ToPoint = oPolygon.PointList.GetFrom(ToIndex);
+                PointF pTo = this.W2S(ToPoint.X, ToPoint.Y);
+
+                PointF Target = EdgeCenter(pFrom, pTo);
+
+                if (IsHitOnTarget(ScreenMouseX, ScreenMouseY, Target))
+                {
+                    CurrentlySelectedHole = oHole;
+                    // Most recently selected is used for commands that happen after the mouse is up
+                    MostRecentlySelectedHole = oHole;
+                    CurrentlySelectedHandleType = eHandleType.EdgeHandle;
+
+                    CurrentlySelectedPolygonEdgeIndex = i;
+                    // The most recently used is for commands that happen after the mouse is up
+                    MostRecentlySelectedPolygonEdgeIndex = i;
+
+                    return true;
+                }
+            }
+            /*
+             * See if this is the move handle at the center of the polygon
+             */
+            PointF pCenter = PolygonCenter(oPolygon);
+            pCenter = this.W2S(pCenter.X, pCenter.Y);
+
+            if (IsHitOnTarget(ScreenMouseX,ScreenMouseY,pCenter))
+            {
+                CurrentlySelectedHole = oHole;
+                // Most recently selected is used for commands that happen after the mouse is up
+                MostRecentlySelectedHole = oHole;
+                CurrentlySelectedHandleType = eHandleType.MoveHandle;
+                return true;
+            }
+
+
+            return false;
+        }
+
+        private PointF PolygonCenter(BoundaryPolygon oPolygon)
+        {
+            float x = 0;
+            float y = 0;
+            for (int i=0; i < oPolygon.PointList.Count; i++)
+            {
+                Point3D p = oPolygon.PointList.GetFrom(i);
+                x += p.X;
+                y += p.Y;
+            }
+
+            PointF oCenter = new PointF(x / oPolygon.PointList.Count, y / oPolygon.PointList.Count);
+
+            return oCenter;
+
+        }
+
+
+
+
+
+
+        //----------------------------------------------------------------------------
+        private bool TrySelectRectangle(Hole oHole,int ScreenMouseX, int ScreenMouseY)
+        {
+            PointF MoveHandle = new PointF(0, 0);
+            PointF ResizeHandle = new PointF(0, 0);
+
+            BoundaryRectangle oRect = BoundaryRectangleList.GetFrom(oHole.HoleTypeIndex);
+
+            // The move handle  is the center
+            MoveHandle = this.W2S(oHole.OffsetX, oHole.OffsetY);
+            if (IsHitOnTarget(ScreenMouseX, ScreenMouseY, MoveHandle))
+            {
+                CurrentlySelectedHole = oHole;
+                MostRecentlySelectedHole = oHole;
+                CurrentlySelectedHandleType = eHandleType.MoveHandle;
+                return true;
+            }
+
+            // The resize handle is the lower right corner
+            ResizeHandle = this.W2S(oHole.OffsetX + oRect.Width / 2, oHole.OffsetY + oRect.Height / 2);
+            if (IsHitOnTarget(ScreenMouseX, ScreenMouseY, ResizeHandle))
+            {
+                CurrentlySelectedHole = oHole;
+                MostRecentlySelectedHole = oHole;
+                CurrentlySelectedHandleType = eHandleType.ResizeHandle;
+                return true;
+            }
+
+            return false;
+        }
+
+
+ 
+
+
+
+        public eOperationStatus UpdateCurrentHole(int ScreenMouseX, int ScreenMouseY, int ScreenDeltaX, int ScreenDeltaY)
+        {
+            if (CurrentlySelectedHole == null) return eOperationStatus.NoVertexSelected;
+
+            switch (CurrentlySelectedHole.HoleType)
+            {
+                case "rect":
+                    UpdateRectangle(ScreenMouseX, ScreenMouseY, ScreenDeltaX, ScreenDeltaY);
+                    break;
+                case "poly":
+                    UpdatePolygon(ScreenMouseX, ScreenMouseY, ScreenDeltaX, ScreenDeltaY);
+                    break;
+                case "ell":
+                    UpdateEllipse(ScreenMouseX, ScreenMouseY, ScreenDeltaX, ScreenDeltaY);
+                    break;
+            }
+   
+
+            return eOperationStatus.OK;
+        }
+
+
+
+
+
+        private void UpdateEllipse(int ScreenMouseX, int ScreenMouseY, int ScreenDeltaX, int ScreenDeltaY)
+        {
+            BoundaryEllipse oEllipse = BoundaryEllipseList.GetFrom(CurrentlySelectedHole.HoleTypeIndex);
+            PointF pWorld = this.S2W(ScreenMouseX, ScreenMouseY);
+
+            float newx = pWorld.X;
+            float newy = pWorld.Y;
+
+            // Update the world points to the nearest grid
+            if (this.GridSize > 1)
+            {
+                newx = this.RoundToGrid((int)pWorld.X);
+                newy = this.RoundToGrid((int)pWorld.Y);
+            }
+
+            switch (CurrentlySelectedHandleType)
+            {
+                case eHandleType.MoveHandle:
+
+                    CurrentlySelectedHole.OffsetX = newx;
+                    CurrentlySelectedHole.OffsetY = newy;
+                    break;
+                case eHandleType.ResizeHandle:
+                    // Get the hole struct and change the size
+                    switch (CurrentlySelectedHole.HoleType)
+                    {
+                        case "ell":
+                            oEllipse.Width += ScreenDeltaX * 2;
+                            oEllipse.Height += ScreenDeltaY * 2;
+                            break;
+                    }
+                    break;
+            }
+        }
+
+
+
+
+
+
+        //------------------------------------------------------------------------------------------------
+        protected void UpdatePolygon(int ScreenMouseX, int ScreenMouseY, int ScreenDeltaX, int ScreenDeltaY)
+        {
+            BoundaryPolygon oPolygon = BoundaryPolygonList.GetFrom(CurrentlySelectedHole.HoleTypeIndex);
+            PointF pWorld = this.S2W(ScreenMouseX, ScreenMouseY);
+            float newx = pWorld.X;
+            float newy = pWorld.Y;
+
+            // Update the world points to the nearest grid
+            if (this.GridSize > 1)
+            {
+                newx = this.RoundToGrid((int)pWorld.X);
+                newy = this.RoundToGrid((int)pWorld.Y);
+            }
+
+            switch (CurrentlySelectedHandleType)
+            {
+                case eHandleType.VertexHandle:
+                    /*
+                     * Retrieve this vertex and update 
+                     */
+                     Point3D p = oPolygon.PointList.GetFrom(CurrentlySelectedPolygonVertexIndex);
+
+                    p.X = newx;
+                    p.Y = newy;
+
+                    break;
+                case eHandleType.EdgeHandle:
+                    /*
+                     * The points associated with the edge are the ones at the value and after
+                     */
+                    int FromIndex = CurrentlySelectedPolygonEdgeIndex;
+                    int ToIndex = FromIndex + 1;
+                    if (ToIndex == oPolygon.PointList.Count) ToIndex = 0;
+
+                    Point3D FromPoint = oPolygon.PointList.GetFrom(FromIndex);
+                    Point3D ToPoint = oPolygon.PointList.GetFrom(ToIndex);
+
+                    FromPoint.X += ScreenDeltaX;
+                    FromPoint.Y += ScreenDeltaY;
+
+                    ToPoint.X += ScreenDeltaX;
+                    ToPoint.Y += ScreenDeltaY;
+                    break;
+                case eHandleType.MoveHandle:
+                    /*
+                     * Update all points with the delta
+                     */
+                     for (int i=0; i < oPolygon.PointList.Count; i++)
+                    {
+                        Point3D pMove = oPolygon.PointList.GetFrom(i);
+                        pMove.X += ScreenDeltaX;
+                        pMove.Y += ScreenDeltaY;
+                    }
+                    break;
+            }
+        }
+
+
+
+
+
+        private void UpdateRectangle(int ScreenMouseX, int ScreenMouseY, int ScreenDeltaX, int ScreenDeltaY)
+        {
+            BoundaryRectangle oRect = BoundaryRectangleList.GetFrom(CurrentlySelectedHole.HoleTypeIndex);
+            PointF pWorld = this.S2W(ScreenMouseX, ScreenMouseY);
+
+            float newx = pWorld.X;
+            float newy = pWorld.Y;
+
+            // Update the world points to the nearest grid
+            if (this.GridSize > 1)
+            {
+                newx = this.RoundToGrid((int)pWorld.X);
+                newy = this.RoundToGrid((int)pWorld.Y);
+            }
+
+            switch (CurrentlySelectedHandleType)
+            {
+                case eHandleType.MoveHandle:
+
+                    CurrentlySelectedHole.OffsetX = newx;
+                    CurrentlySelectedHole.OffsetY = newy;
+                    break;
+                case eHandleType.ResizeHandle:
+                    // Get the hole struct and change the size
+                    switch (CurrentlySelectedHole.HoleType)
+                    {
+                        case "rect":
+                            oRect.Width += ScreenDeltaX * 2;
+                            oRect.Height += ScreenDeltaY * 2;
+                            break;
+                    }
+                    break;
+            }
+        }
+
+
+
+
+
+}

@@ -1,0 +1,11 @@
+    public partial class Point2D 
+{
+        [HelpProperty(XPropertyPosition = HelpPropertyAttribute.eXPropertyPosition.AttributeOfParent, SampleValue ="13.4")]
+        public float X { get; set; }
+        [HelpProperty(XPropertyPosition = HelpPropertyAttribute.eXPropertyPosition.AttributeOfParent, SampleValue = "2")]
+        public float Y { get; set; }
+
+
+
+
+}

@@ -1,0 +1,16 @@
+    public partial class BoundaryPolygon 
+{
+        /// <summary>
+        /// List of points for the boundarylinesegment
+        /// </summary>
+        [HelpProperty("pointlist")]
+        public List<Point3D> PointList { get; set; } = new List<Point3D>();
+
+ 
+
+
+
+
+
+
+}
