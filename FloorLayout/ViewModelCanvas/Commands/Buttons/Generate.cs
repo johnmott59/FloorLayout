@@ -53,7 +53,18 @@ namespace FloorLayout
             oFWRInput.OutlineAreas.InvertHolePoints();
 
             DebugWindow.WriteSeparator("API CALL #1: GetFloorLayout");
+
+            // Save FloorLayoutInput XML (Step 1)
+            string floorLayoutInputPath = Path.ChangeExtension(DefaultFileToGenerateTo, ".step1-floorlayoutinput.xml");
+            DebugWindow.WriteLine($"Saving FloorLayoutInput XML to: {floorLayoutInputPath}");
+            oInput.GetProperties().Save(floorLayoutInputPath);
+
             XElement xfl = GetFloorLayout(oInput.GetProperties());
+
+            // Save FloorMaker XML (Step 2 - after room generation)
+            string floorMakerPath = Path.ChangeExtension(DefaultFileToGenerateTo, ".step2-floormaker.xml");
+            DebugWindow.WriteLine($"Saving FloorMaker XML to: {floorMakerPath}");
+            xfl.Save(floorMakerPath);
 
             DebugWindow.WriteLine("Restoring Y coordinates...");
             oFWRInput.OpenAreas.InvertHolePoints();
@@ -99,8 +110,8 @@ namespace FloorLayout
 
             if (!loadSuccess)
             {
-                System.Windows.MessageBox.Show($"Failed to load FloorMaker properties: {message}",
-                    "Load Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+                // System.Windows.MessageBox.Show($"Failed to load FloorMaker properties: {message}",
+                //     "Load Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
                 return;
             }
 
@@ -132,9 +143,9 @@ namespace FloorLayout
                 DebugWindow.WriteLine($"  - Exterior window candidates: {windowCandidates}");
             }
 
-            System.Windows.MessageBox.Show(
-                $"FloorMaker loaded:\n- Rooms: {roomCount}\n- Edges: {edgeCount}\n- Vertices: {vertexCount}",
-                "Debug Info", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+            // System.Windows.MessageBox.Show(
+            //     $"FloorMaker loaded:\n- Rooms: {roomCount}\n- Edges: {edgeCount}\n- Vertices: {vertexCount}",
+            //     "Debug Info", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
 
             DebugWindow.WriteSeparator("DOOR SELECTION");
             DebugWindow.WriteLine("Calling RandomlySelectDoors()...");
@@ -148,6 +159,12 @@ namespace FloorLayout
             DebugWindow.WriteLine("Calling FloorMaker.Compile(5, 5)...");
             XElement sl = oFloorLayout.Compile(5, 5);
             XElement scene = new XElement("scene", sl);
+
+            // Save SimpleLayout XML (Step 3 - compiled for mesh generation)
+            string simpleLayoutPath = Path.ChangeExtension(DefaultFileToGenerateTo, ".step3-simplelayout.xml");
+            DebugWindow.WriteLine($"Saving SimpleLayout XML to: {simpleLayoutPath}");
+            scene.Save(simpleLayoutPath);
+            DebugWindow.WriteLine($"SimpleLayout XML saved successfully");
 
             DebugWindow.WriteSeparator("API CALL #2: GetMesh");
             File.Delete(DefaultFileToGenerateTo);
