@@ -27,10 +27,13 @@ namespace FloorLayout
 
             // Hook up to viewmodel, pass in the canvas
             oViewModel = new ViewModelCanvas(layoutCanvas);
-          
+
             this.DataContext = oViewModel;
         }
 
- 
+        private void MenuShowDebugWindow_Click(object sender, RoutedEventArgs e)
+        {
+            DebugWindow.Show();
+        }
     }
 }

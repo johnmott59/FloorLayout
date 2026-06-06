@@ -1,0 +1,49 @@
+<Window x:Class="FloorLayout.DebugWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="FloorLayout Debug Output"
+        Height="600"
+        Width="800"
+        WindowStartupLocation="Manual"
+        Left="100"
+        Top="100">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Toolbar -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Background="#F0F0F0" Height="40">
+            <Button x:Name="btnClear" Content="Clear" Width="80" Margin="5" Click="BtnClear_Click"/>
+            <Button x:Name="btnSave" Content="Save Log..." Width="80" Margin="5" Click="BtnSave_Click"/>
+            <CheckBox x:Name="chkAutoScroll" Content="Auto-scroll" IsChecked="True" VerticalAlignment="Center" Margin="10,0"/>
+            <TextBlock x:Name="txtLineCount" Text="Lines: 0" VerticalAlignment="Center" Margin="10,0" FontWeight="Bold"/>
+        </StackPanel>
+
+        <!-- Debug output TextBox -->
+        <ScrollViewer Grid.Row="1" x:Name="scrollViewer" VerticalScrollBarVisibility="Auto">
+            <TextBox x:Name="txtDebugOutput"
+                     TextWrapping="Wrap"
+                     IsReadOnly="True"
+                     FontFamily="Consolas"
+                     FontSize="11"
+                     Background="#1E1E1E"
+                     Foreground="#DCDCDC"
+                     Padding="5"
+                     VerticalScrollBarVisibility="Auto"
+                     HorizontalScrollBarVisibility="Auto"/>
+        </ScrollViewer>
+
+        <!-- Status bar -->
+        <Border Grid.Row="2" Background="#007ACC" Height="25">
+            <TextBlock x:Name="txtStatus"
+                       Text="Ready"
+                       Foreground="White"
+                       VerticalAlignment="Center"
+                       Margin="5,0"
+                       FontWeight="Bold"/>
+        </Border>
+    </Grid>
+</Window>

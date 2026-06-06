@@ -57,6 +57,9 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="DebugWindow.xaml.cs">
+      <DependentUpon>DebugWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="ViewModelCanvas\Utilities\GetFloorLayout.cs" />
     <Compile Include="ViewModelCanvas\Utilities\GetMesh.cs" />
     <Compile Include="WindowCanvas\Canvas.MouseDown.cs" />
@@ -105,6 +108,10 @@
     </Compile>
     <Compile Include="ICommand.cs" />
     <Page Include="ConverterControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="DebugWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -30,6 +30,9 @@
                     <MenuItem Header="Save _As"  Command="{Binding MenuItemSaveAsCommand}" />
                     <MenuItem Header="_Close"    Command="{Binding MenuItemCloseCommand}" />
                 </MenuItem>
+                <MenuItem Header="_View">
+                    <MenuItem Header="Show _Debug Window" Click="MenuShowDebugWindow_Click"/>
+                </MenuItem>
             </Menu>
         </DockPanel>
 

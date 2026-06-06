@@ -18,24 +18,37 @@ namespace FloorLayout
         {
             XElement result;
 
-            // DEBUG: Log the input
-            System.Diagnostics.Debug.WriteLine("=== GetFloorLayout INPUT ===");
-            System.Diagnostics.Debug.WriteLine(ele.ToString());
-            System.Diagnostics.Debug.WriteLine("==============================");
+            // Log the input
+            DebugWindow.WriteLine("FloorLayoutInput XML:");
+            // Count input elements
+            var outlineHoles = ele.Descendants("outline").Descendants("hole").Count();
+            var openAreaHoles = ele.Descendants("openarea").Descendants("hole").Count();
+            var wallSegments = ele.Descendants("wallsegmentarray").Descendants("linesegment").Count();
+            DebugWindow.WriteLine($"  - Outline holes: {outlineHoles}");
+            DebugWindow.WriteLine($"  - Open area holes: {openAreaHoles}");
+            DebugWindow.WriteLine($"  - Wall segments: {wallSegments}");
+            DebugWindow.WriteLine("");
 
             // Call APILib directly instead of web API
+            DebugWindow.WriteLine("Calling API.APIEntry('getfloorlayout')...");
             API api = new API();
             APIStatus status = api.APIEntry("getfloorlayout", ele.ToString());
 
-            // DEBUG: Check API status
-            System.Diagnostics.Debug.WriteLine($"API Success: {status.Success}");
-            System.Diagnostics.Debug.WriteLine($"API ErrorMessage: {status.ErrorMessage}");
-            System.Diagnostics.Debug.WriteLine($"API OutputFile: {status.OutputFile}");
+            // Check API status
+            DebugWindow.WriteLine($"API Status: {(status.Success ? "SUCCESS" : "FAILED")}");
+            if (!string.IsNullOrEmpty(status.ErrorMessage))
+            {
+                DebugWindow.WriteLine($"  Error: {status.ErrorMessage}");
+            }
+            if (!string.IsNullOrEmpty(status.OutputFile))
+            {
+                DebugWindow.WriteLine($"  Output file: {status.OutputFile}");
+            }
 
             if (!status.Success)
             {
                 string error = $"GetFloorLayout failed: {status.ErrorMessage}";
-                System.Diagnostics.Debug.WriteLine($"ERROR: {error}");
+                DebugWindow.WriteLine($"ERROR: {error}");
                 MessageBox.Show(error, "API Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 throw new System.Exception(error);
             }
@@ -44,30 +57,37 @@ namespace FloorLayout
             if (!string.IsNullOrEmpty(status.OutputFile) && File.Exists(status.OutputFile))
             {
                 FileInfo fi = new FileInfo(status.OutputFile);
-                System.Diagnostics.Debug.WriteLine($"Output file size: {fi.Length} bytes");
+                DebugWindow.WriteLine($"Loading FloorMaker XML from temp file ({fi.Length} bytes)...");
 
                 result = XElement.Load(status.OutputFile);
 
-                // DEBUG: Log the output
-                System.Diagnostics.Debug.WriteLine("=== GetFloorLayout OUTPUT ===");
-                System.Diagnostics.Debug.WriteLine(result.ToString());
-                System.Diagnostics.Debug.WriteLine("==============================");
-
                 // Check if result has any rooms
-                // The structure is: <list name="assembledroomlist"><rmassembledroom>...</rmassembledroom></list>
+                var vertexList = result.Descendants("list")
+                    .FirstOrDefault(x => x.Attribute("name")?.Value == "vertexlist");
+                var edgeList = result.Descendants("list")
+                    .FirstOrDefault(x => x.Attribute("name")?.Value == "edgelist");
                 var roomList = result.Descendants("list")
                     .FirstOrDefault(x => x.Attribute("name")?.Value == "assembledroomlist");
 
-                if (roomList != null)
+                int vertexCount = vertexList?.Elements("vertex").Count() ?? 0;
+                int edgeCount = edgeList?.Elements().Count() ?? 0;
+                int roomCount = roomList?.Elements().Count() ?? 0;
+
+                DebugWindow.WriteLine("");
+                DebugWindow.WriteLine("RoomGenWrapper output:");
+                DebugWindow.WriteLine($"  - Vertices: {vertexCount}");
+                DebugWindow.WriteLine($"  - Edges: {edgeCount}");
+                DebugWindow.WriteLine($"  - Rooms: {roomCount}");
+
+                if (roomCount > 0)
                 {
-                    int roomCount = roomList.Elements("rmassembledroom").Count();
-                    System.Diagnostics.Debug.WriteLine($"Number of rooms found: {roomCount}");
                     MessageBox.Show($"FloorLayout generated successfully with {roomCount} rooms",
-                        "Debug Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                        "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
                 else
                 {
-                    System.Diagnostics.Debug.WriteLine("WARNING: No assembledroomlist element found in output");
+                    DebugWindow.WriteLine("");
+                    DebugWindow.WriteLine("WARNING: No rooms were generated by RoomGenWrapper!");
                     MessageBox.Show("WARNING: No rooms were generated. Check that you have defined outlines, open areas, and walls.",
                         "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
                 }
@@ -75,7 +95,7 @@ namespace FloorLayout
             else
             {
                 string error = $"GetFloorLayout did not produce an output file. OutputFile={status.OutputFile ?? "null"}";
-                System.Diagnostics.Debug.WriteLine($"ERROR: {error}");
+                DebugWindow.WriteLine($"ERROR: {error}");
                 MessageBox.Show(error, "API Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 throw new System.Exception(error);
             }
