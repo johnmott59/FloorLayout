@@ -44,7 +44,7 @@ namespace FloorLayout
         /// <summary>
         /// Show the debug window
         /// </summary>
-        public static void Show()
+        public static void ShowWindow()
         {
             Instance.Show();
             Instance.Activate();

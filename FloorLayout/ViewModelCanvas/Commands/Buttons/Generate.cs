@@ -21,7 +21,7 @@ namespace FloorLayout
         private void Generate()
         {
             // Show debug window and setup APILib callback
-            DebugWindow.Show();
+            DebugWindow.ShowWindow();
             APILib.DebugLogger.WriteLineCallback = DebugWindow.WriteLine;
 
             DebugWindow.WriteSeparator("GENERATE START");
@@ -76,8 +76,8 @@ namespace FloorLayout
                 .FirstOrDefault(x => x.Attribute("name")?.Value == "edgelist");
             if (edgeList != null)
             {
-                int edgeCount = edgeList.Elements("fmedge").Count();
-                DebugWindow.WriteLine($"  - Renaming {edgeCount} 'fmedge' elements to 'fledge'");
+                int fmedgeCount = edgeList.Elements("fmedge").Count();
+                DebugWindow.WriteLine($"  - Renaming {fmedgeCount} 'fmedge' elements to 'fledge'");
                 foreach (var edgeElement in edgeList.Elements("fmedge").ToList())
                 {
                     edgeElement.Name = "fledge";

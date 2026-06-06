@@ -197,7 +197,7 @@ Doors assigned: 0
 
 ```csharp
 // Show debug window and setup APILib callback
-DebugWindow.Show();
+DebugWindow.ShowWindow();
 APILib.DebugLogger.WriteLineCallback = DebugWindow.WriteLine;
 ```
 
@@ -251,7 +251,7 @@ Click **Save Log...** button to export the complete debug output:
 
 ```csharp
 // FloorLayout: Setup callback
-DebugWindow.Show();
+DebugWindow.ShowWindow();
 APILib.DebugLogger.WriteLineCallback = DebugWindow.WriteLine;
 
 // FloorLayout: Write debug output

@@ -33,7 +33,7 @@ namespace FloorLayout
 
         private void MenuShowDebugWindow_Click(object sender, RoutedEventArgs e)
         {
-            DebugWindow.Show();
+            DebugWindow.ShowWindow();
         }
     }
 }
