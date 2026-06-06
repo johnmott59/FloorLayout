@@ -20,9 +20,13 @@ namespace FloorLayout
         // Called by the form when the button is pressed
         private void Generate()
         {
-            // Show debug window and setup APILib callback
+            // Show debug window and setup callbacks
             DebugWindow.ShowWindow();
             APILib.DebugLogger.WriteLineCallback = DebugWindow.WriteLine;
+
+            // Also redirect System.Diagnostics.Debug to our window
+            System.Diagnostics.Debug.Listeners.Clear();
+            System.Diagnostics.Debug.Listeners.Add(new DebugWindowTraceListener());
 
             DebugWindow.WriteSeparator("GENERATE START");
             DebugWindow.WriteLineWithTime("Generate button clicked");

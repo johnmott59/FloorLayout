@@ -60,6 +60,7 @@
     <Compile Include="DebugWindow.xaml.cs">
       <DependentUpon>DebugWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="DebugWindowTraceListener.cs" />
     <Compile Include="ViewModelCanvas\Utilities\GetFloorLayout.cs" />
     <Compile Include="ViewModelCanvas\Utilities\GetMesh.cs" />
     <Compile Include="WindowCanvas\Canvas.MouseDown.cs" />
